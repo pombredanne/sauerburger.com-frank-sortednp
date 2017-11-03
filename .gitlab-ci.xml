@@ -1,0 +1,13 @@
+image: python:3
+
+stages:
+  - test
+
+
+README:
+    stage: test
+    script:
+     - pip install doxec
+     - python3 setup.py install
+     - doxec README.md 
+
