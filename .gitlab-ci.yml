@@ -7,7 +7,7 @@ stages:
 README:
     stage: test
     script:
-     - pip install doxec
+     - pip install doxec numpy
      - python3 setup.py install
      - doxec README.md 
 

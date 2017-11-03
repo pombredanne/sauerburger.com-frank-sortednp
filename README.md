@@ -28,7 +28,7 @@ You can install the package by cloning the git repository and running the
 setup script.
 
 <!-- console
-$ git clone git@gitlab.sauerburger.com:frank/sortednp.git sortednp
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
 $ cd sortednp && python3 setup.py install
 -->
 
