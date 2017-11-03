@@ -1,19 +1,12 @@
 
+#include <stdbool.h>
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
-    // const char *command;
-    // int sts;
-
-    // if (!PyArg_ParseTuple(args, "s", &command))
-    //     return NULL;
-    // sts = system(command);
-//    printf("CP 0\n");
+static PyObject * sortednp_intersect(PyObject *self, PyObject *args) {
     PyObject *a, *b;
     if (!PyArg_ParseTuple(args, "OO", &a, &b))
          return NULL;
-//    printf("CP 1\n");
 
     a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
     b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
@@ -22,24 +15,80 @@ static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-//    printf("CP 1.5\n");
-
     int nd_a = PyArray_NDIM(a);
     int nd_b = PyArray_NDIM(b);
-
-//    printf("nd a = %d\n", nd_a);
-//    printf("nd b = %d\n", nd_b);
 
     if (PyArray_NDIM(a) != 1 || PyArray_NDIM(b) != 1) {
       return NULL;
     }
-//    printf("CP 2\n");
 
     npy_intp len_a = PyArray_DIMS(a)[0];
     npy_intp len_b = PyArray_DIMS(b)[0];
 
-//    printf("len a = %d\n", (int) len_a);
-//    printf("len b = %d\n", (int) len_b);
+    npy_intp new_dim[1] = {len_a < len_b ? len_a : len_b};
+
+    PyArrayObject *out =  
+      PyArray_SimpleNewFromDescr(1, new_dim, PyArray_DESCR(a));
+    
+    npy_intp i_a = 0;
+    npy_intp i_b = 0;
+    npy_intp i_o = 0;
+    double v_a = *((double*) PyArray_GETPTR1(a, i_a));
+    double v_b = *((double*) PyArray_GETPTR1(b, i_b));
+
+    while (i_a < len_a && i_b < len_b) {
+        bool matched = false;
+        if (v_a == v_b) {
+          double *t = (double*) PyArray_GETPTR1(out, i_o);
+          *t = v_a;
+
+          i_o++;
+          matched = true;
+        }
+        
+        if (v_a < v_b || matched) {
+            i_a++;
+            v_a = *((double*) PyArray_GETPTR1(a, i_a));
+        }
+
+        if (v_b < v_a || matched) {
+            i_b++;
+            v_b = *((double*) PyArray_GETPTR1(b, i_b));
+        }
+    }
+
+    // resize
+    new_dim[0] = i_o;
+    PyArray_Dims dims;
+    dims.ptr = new_dim;
+    dims.len = 1;
+
+    PyArray_Resize(out, &dims, 0, NPY_CORDER);
+
+    return out;
+}
+
+static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
+    PyObject *a, *b;
+    if (!PyArg_ParseTuple(args, "OO", &a, &b))
+         return NULL;
+
+    a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
+    b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
+
+    if (a == NULL || b == NULL) {
+        return NULL;
+    }
+
+    int nd_a = PyArray_NDIM(a);
+    int nd_b = PyArray_NDIM(b);
+
+    if (PyArray_NDIM(a) != 1 || PyArray_NDIM(b) != 1) {
+      return NULL;
+    }
+
+    npy_intp len_a = PyArray_DIMS(a)[0];
+    npy_intp len_b = PyArray_DIMS(b)[0];
 
     npy_intp new_dim[1] = {len_a + len_b};
 
@@ -82,21 +131,13 @@ static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
         i_b++;
         i_o++;
     }
-    // for (npy_intp i_a=0; i_a < len_a; i_a++) {
-    //     for (npy_intp i_a=0; i_a < len_a; i_a++) {
-    //         double *v = (double*) PyArray_GETPTR1(input, j);
-//    //         printf("Hell %d %f\n", j, *v);
-    //         // double *v = (double*) PyArray_GETPTR1(input, j)
-    //         *v = (*v) * .343;
-    //     }
-    // }
 
     return out;
 }
 
 static PyMethodDef SortedNpMethods[] = {
-    {"merge",  sortednp_merge, METH_VARARGS,
-     "Merge two sorted numpy arrays."},
+    {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
+    {"intersect",  sortednp_intersect, METH_VARARGS, "Intersect two sorted numpy arrays."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
