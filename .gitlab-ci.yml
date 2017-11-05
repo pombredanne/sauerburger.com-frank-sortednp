@@ -25,7 +25,7 @@ benchmark:
 
   artifacts:
     expire_in: 10 weeks
-    path:
+    paths:
      - bm_intersect.png
      - bm_merge.png
     
