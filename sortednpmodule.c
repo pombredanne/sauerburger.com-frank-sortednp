@@ -20,6 +20,7 @@ static PyObject * sortednp_intersect(PyObject *self, PyObject *args) {
     int nd_b = PyArray_NDIM(b);
 
     if (PyArray_NDIM(a) != 1 || PyArray_NDIM(b) != 1) {
+      PyErr_SetString(PyExc_ValueError, "Arguments can not be multi-dimensional.");
       return NULL;
     }
 
@@ -85,6 +86,7 @@ static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
     int nd_b = PyArray_NDIM(b);
 
     if (PyArray_NDIM(a) != 1 || PyArray_NDIM(b) != 1) {
+      PyErr_SetString(PyExc_ValueError, "Arguments can not be multi-dimensional.");
       return NULL;
     }
 
