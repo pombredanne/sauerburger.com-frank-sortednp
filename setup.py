@@ -11,5 +11,6 @@ module1 = Extension('sortednp', language='c++',
 setup (name = 'sortednp',
        version = '0.0.0',
        install_requires=['numpy'],
+       test_suite='tests',
        description = 'Merge and intersect sorted numpy arrays.',
        ext_modules = [module1])

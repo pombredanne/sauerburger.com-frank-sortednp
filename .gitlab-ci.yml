@@ -1,13 +1,19 @@
 image: python:3
 
+before_script:
+ - pip install doxec numpy
+ - python3 setup.py install
+
 stages:
   - test
 
+unittest:
+    state: test
+    script:
+      - python3 setup.py test 
 
 README:
     stage: test
     script:
-     - pip install doxec numpy
-     - python3 setup.py install
      - doxec README.md 
 
