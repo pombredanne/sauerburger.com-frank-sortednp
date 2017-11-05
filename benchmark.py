@@ -3,6 +3,9 @@
 import timeit
 import numpy as np
 import sortednp as snp
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 np.random.seed(2853)

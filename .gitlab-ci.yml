@@ -20,6 +20,8 @@ README:
 
 benchmark:
   stage: benchmark
+  tags:
+   - high-mem
   script:
    - pip install matplotlib
    - python3 benchmark.py
