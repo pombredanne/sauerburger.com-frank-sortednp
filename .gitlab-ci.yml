@@ -6,14 +6,29 @@ before_script:
 
 stages:
   - test
+  - benchmark
 
 unittest:
-    stage: test
-    script:
-      - python3 setup.py test 
+  stage: test
+  script:
+    - python3 setup.py test 
 
 README:
-    stage: test
-    script:
-     - doxec README.md 
+  stage: test
+  script:
+   - doxec README.md 
 
+benchmark:
+  stage: benchmark
+  tags:
+   - high-mem
+  script:
+   - pip install matplotlib
+   - python3 benchmark.py
+
+  artifacts:
+    expire_in: 10 weeks
+    paths:
+     - bm_intersect.png
+     - bm_merge.png
+    
