@@ -10,6 +10,7 @@ stages:
 unittest:
     stage: test
     script:
+      - python3 setup.py install 
       - python3 setup.py test 
 
 README:
