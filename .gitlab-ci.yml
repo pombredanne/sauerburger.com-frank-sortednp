@@ -6,14 +6,26 @@ before_script:
 
 stages:
   - test
+  - benchmark
 
 unittest:
-    stage: test
-    script:
-      - python3 setup.py test 
+  stage: test
+  script:
+    - python3 setup.py test 
 
 README:
-    stage: test
-    script:
-     - doxec README.md 
+  stage: test
+  script:
+   - doxec README.md 
 
+benchmark:
+  stage: benchmark
+  script:
+   - python3 benchmark.py
+
+  artifact:
+    expire_in: 10 weeks
+    path:
+     - bm_intersect.png
+     - bm_merge.png
+    

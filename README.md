@@ -84,3 +84,20 @@ array.
 $ python3 intersect.py
 [ 3.  7.]
 ```
+
+# Performance
+The performance of the package can be compared with the default implementation
+of numpy. The ratio of the execution time between sortednp and numpy is
+deplayed as a function the array size. The tests are performed for
+merging/intersecting two or more arrays.
+
+The considered time includes one the time required to merge and intersect
+*sorted* arrays and not the time required to sort the arrays in the first
+place. This is in agreement with the idea that sorted arrays are the basic
+data structure and that sorted arrays are stored on disk.
+
+## Intersecting
+![Intersection benchmark](https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect.png?job=benchmark)
+
+## Merging
+![Union benchmark](https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge.png?job=benchmark)
