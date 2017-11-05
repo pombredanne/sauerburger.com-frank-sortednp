@@ -21,6 +21,7 @@ README:
 benchmark:
   stage: benchmark
   script:
+   - pip install matplotlib
    - python3 benchmark.py
 
   artifacts:
