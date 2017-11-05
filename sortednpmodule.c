@@ -5,8 +5,9 @@
 
 static PyObject * sortednp_intersect(PyObject *self, PyObject *args) {
     PyObject *a, *b;
-    if (!PyArg_ParseTuple(args, "OO", &a, &b))
-         return NULL;
+
+    if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b))
+        return NULL;
 
     a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
     b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
@@ -70,8 +71,8 @@ static PyObject * sortednp_intersect(PyObject *self, PyObject *args) {
 
 static PyObject * sortednp_merge(PyObject *self, PyObject *args) {
     PyObject *a, *b;
-    if (!PyArg_ParseTuple(args, "OO", &a, &b))
-         return NULL;
+    if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b))
+        return NULL;
 
     a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
     b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
