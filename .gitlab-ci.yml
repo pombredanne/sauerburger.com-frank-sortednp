@@ -23,7 +23,7 @@ benchmark:
   script:
    - python3 benchmark.py
 
-  artifact:
+  artifacts:
     expire_in: 10 weeks
     path:
      - bm_intersect.png
