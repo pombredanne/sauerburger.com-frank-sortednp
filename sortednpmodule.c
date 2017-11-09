@@ -3,9 +3,6 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-// Turn debug information about reference counting on or off.
-// #define REF_DEBUG 1
-
 /*
  * The sortednp_intersect function expects exactly two references to sorted
  * arrays as positional arguments. The function borrows the references. The
@@ -37,11 +34,6 @@ static PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
     // a new reference to the array for use and passes ownership of the
     // references to use. To keep the reference count constant we have to
     // decrement it.
-
-    #ifdef REF_DEBUG
-        printf("\n -- n_ref(a, before FROM OF) = %d\n", (int) Py_REFCNT(a));  // returns 2
-    #endif  // REF_DEBUG
-
     a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
     b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
@@ -54,10 +46,6 @@ static PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
       // Reference counter of input arrays have been fixed. It is safe to exit.
         return NULL;
     }
-
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(a, after DECREF)   = %d  (should be the same)\n", (int) Py_REFCNT(a));  // returns 2
-    #endif  // REF_DEBUG
 
     int nd_a = PyArray_NDIM(a);
     int nd_b = PyArray_NDIM(b);
@@ -79,18 +67,10 @@ static PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
     // type descriptor, which is why we have to increment its count before
     // calling the method.
     PyArray_Descr* type = PyArray_DESCR(a);
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(t, before create)  = %d\n", (int) Py_REFCNT(type));
-    #endif  // REF_DEBUG
     Py_INCREF(type);
     PyArrayObject *out;
     out = PyArray_SimpleNewFromDescr(1, new_dim, type);
 
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(t, after create)   = %d  (shouldn't be less)\n", (int) Py_REFCNT(type));
-        printf(" -- n_ref(i, after create)   = %d  (should be 1)\n", (int) Py_REFCNT(out));  // returns 1
-    #endif  // REF_DEBUG
-    
     npy_intp i_a = 0;
     npy_intp i_b = 0;
     npy_intp i_o = 0;
@@ -119,22 +99,12 @@ static PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
         }
     }
 
-    #ifdef REF_DEBUG
-        // Accessing pointers should not affect the reference count.
-        printf(" -- n_ref(i, after fill)     = %d  (should be 1)\n", (int) Py_REFCNT(out));  // returns 1
-    #endif  // REF_DEBUG
-    
     // Resize the array after intersect operation.
     new_dim[0] = i_o;
     PyArray_Dims dims;
     dims.ptr = new_dim;
     dims.len = 1;
     PyArray_Resize(out, &dims, 0, NPY_CORDER);
-
-    #ifdef REF_DEBUG
-        // Resizing the array should not affect the reference count.
-        printf(" -- n_ref(i, after resize)   = %d  (should be 1)\n", (int) Py_REFCNT(out));  // returns 1
-    #endif  // REF_DEBUG
 
     // Passes ownership of the returned reference to the  caller.
     return out;
@@ -170,11 +140,6 @@ static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
     // a new reference to the array for use and passes ownership of the
     // references to use. To keep the reference count constant we have to
     // decrement it.
-
-    #ifdef REF_DEBUG
-        printf("\n -- n_ref(a, before FROM OF) = %d\n", (int) Py_REFCNT(a));  // returns 2
-    #endif  // REF_DEBUG
-
     a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
     b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
@@ -187,10 +152,6 @@ static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
       // Reference counter of input arrays have been fixed. It is safe to exit.
         return NULL;
     }
-
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(a, after DECREF)   = %d  (should be the same)\n", (int) Py_REFCNT(a));  // returns 2
-    #endif  // REF_DEBUG
 
     int nd_a = PyArray_NDIM(a);
     int nd_b = PyArray_NDIM(b);
@@ -213,18 +174,10 @@ static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
     // type descriptor, which is why we have to increment its count before
     // calling the method.
     PyArray_Descr* type = PyArray_DESCR(a);
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(t, before create)  = %d\n", (int) Py_REFCNT(type));
-    #endif  // REF_DEBUG
     Py_INCREF(type);
     PyArrayObject *out;
     out = PyArray_SimpleNewFromDescr(1, new_dim, type);
 
-    #ifdef REF_DEBUG
-        printf(" -- n_ref(t, after create)   = %d  (shouldn't be less)\n", (int) Py_REFCNT(type));
-        printf(" -- n_ref(m, after create)   = %d  (should be 1)\n", (int) Py_REFCNT(out));  // returns 1
-    #endif  // REF_DEBUG
-    
     npy_intp i_a = 0;
     npy_intp i_b = 0;
     npy_intp i_o = 0;
@@ -264,11 +217,6 @@ static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
         i_b++;
         i_o++;
     }
-
-    #ifdef REF_DEBUG
-        // Resizing the array should not affect the reference count.
-        printf(" -- n_ref(m, after resize)   = %d  (should be 1)\n", (int) Py_REFCNT(out));  // returns 1
-    #endif  // REF_DEBUG
 
     // Passes ownership of the returned reference to the  caller.
     return out;
