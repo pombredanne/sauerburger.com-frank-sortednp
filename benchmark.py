@@ -3,12 +3,27 @@
 import timeit
 import numpy as np
 import sortednp as snp
+from functools import reduce
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 np.random.seed(2853)
+
+def np_kway_intersect(*arrays, assume_sorted):
+    """
+    Intersect all arrays iteratively.
+    """
+    return reduce(np.intersect1d, arrays)
+
+def np_kway_merge(*arrays, assume_sorted):
+    """
+    Intersect all arrays iteratively.
+    """
+    all = np.concatenate(arrays)
+    all.sort()
+    return all
 
 def get_time(func, *args, **kwds):
     """
@@ -29,94 +44,114 @@ def get_random_array(size, density=1):
     pool = np.arange(0, size * p).astype('float64')
     np.random.shuffle(pool)
     a = pool[:int(size / p)]
-    a.sort()
     return a
 
-def get_snp_intersect_time(size, n=2):
+def benchmark(algo, array_size, n_arrays, assume_sorted):
     """
-    Calculate the intersection for the given array sizes using sorted numpy
-    and return the duration. The parameter n determines the number of arrays.
+    Run a generic benchmark test. The given algorithm must be callable. This
+    must be a calculate the k-way union or intersection for numpy of sortednp. The
+    benchmark will use n_arrays arrays with each array_size entries. If the
+    flag assume sorted is True, the algorithm will be called with the same
+    argument and the benchmark sorts the arrays before the stop watch is
+    started. If assume_sorted is False, the time it takes to sort the arrays
+    is included in the execution time of the algorithm.
     """
-    a = [get_random_array(size) for i in range(n)]
+    arrays = [get_random_array(array_size) for i in range(n_arrays)]
 
-    def func():
-        x = a.pop()
-        for A in a:
-            x = snp.intersect(A, x)
+    if assume_sorted:
+        for array in arrays:
+            array.sort()
 
-        return x
-    
-    return get_time(func)
-
-def get_snp_merge_time(size, n=2):
-    """
-    Calculate the union for the given array sizes using sorted numpy
-    and return the duration. The parameter n determines the number of arrays.
-    """
-    a = [get_random_array(size) for i in range(n)]
-
-    def func():
-        x = a.pop()
-        for A in a:
-            x = snp.merge(A, x)
-
-        return x
-    
-    return get_time(func)
-
-def get_np_intersect_time(size, n=2):
-    """
-    Calculate the intersection for the given array sizes using standard numpy
-    and return the duration. The parameter n determines the number of arrays.
-    """
-    a = [get_random_array(size) for i in range(n)]
-
-    def func():
-        x = a.pop()
-        for A in a:
-            x = np.intersect1d(A, x)
-        return x
-    
-    return get_time(func)
-
-def get_np_merge_time(size, n=2):
-    """
-    Calculate the union for the given array sizes using standard numpy
-    and return the duration. The parameter n determines the number of arrays.
-    """
-    a = [get_random_array(size) for i in range(n)]
-
-    def func():
-        x = a.pop()
-        for A in a:
-            x = np.concatenate((A, x))
-        x.sort()
-        return x
-    
-    return get_time(func)
+    return get_time(algo, *arrays, assume_sorted=assume_sorted) 
 
 
-def bm_intersect():
+# def get_snp_intersect_time(size, n=2):
+#     """
+#     Calculate the intersection for the given array sizes using sorted numpy
+#     and return the duration. The parameter n determines the number of arrays.
+#     """
+#     a = [get_random_array(size) for i in range(n)]
+# 
+#     def func():
+#         x = a.pop()
+#         for A in a:
+#             x = snp.intersect(A, x)
+# 
+#         return x
+#     
+#     return get_time(func)
+# 
+# def get_snp_merge_time(size, n=2):
+#     """
+#     Calculate the union for the given array sizes using sorted numpy
+#     and return the duration. The parameter n determines the number of arrays.
+#     """
+#     a = [get_random_array(size) for i in range(n)]
+# 
+#     def func():
+#         x = a.pop()
+#         for A in a:
+#             x = snp.merge(A, x)
+# 
+#         return x
+#     
+#     return get_time(func)
+# 
+# def get_np_intersect_time(size, n=2):
+#     """
+#     Calculate the intersection for the given array sizes using standard numpy
+#     and return the duration. The parameter n determines the number of arrays.
+#     """
+#     a = [get_random_array(size) for i in range(n)]
+# 
+#     def func():
+#         x = a.pop()
+#         for A in a:
+#             x = np.intersect1d(A, x)
+#         return x
+#     
+#     return get_time(func)
+# 
+# def get_np_merge_time(size, n=2):
+#     """
+#     Calculate the union for the given array sizes using standard numpy
+#     and return the duration. The parameter n determines the number of arrays.
+#     """
+#     a = [get_random_array(size) for i in range(n)]
+# 
+#     def func():
+#         x = a.pop()
+#         for A in a:
+#             x = np.concatenate((A, x))
+#         x.sort()
+#         return x
+#     
+#     return get_time(func)
+
+
+def plot_intersect_benchmark(assume_sorted):
     """
     Create the plot for the intersection benchmark.
     """
     plt.figure(figsize=(6, 4))
     plt.subplot(111)
 
-    sizes = [1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6]
-    colors = list(reversed(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-        '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-        '#bcbd22', '#17becf']))
+    sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
+    colors = ['#17becf', '#bcbd22', '#7f7f7f', '#e377c2', '#8c564b', '#9467bd']
     def next_color():
         return colors.pop()
 
-    for n in [2, 5, 10, 15]:
+    for n in [15, 10, 5, 2]:
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
         for i in range(5):
-            snp_timing += np.array([get_snp_intersect_time(s, n) for s in sizes])
-            np_timing += np.array([get_np_intersect_time(s, n) for s in sizes])
+            snp_timing += np.array([
+                benchmark(snp.kway_intersect, s, n, assume_sorted)
+                for s in sizes])
+            np_timing += np.array([
+                benchmark(np_kway_intersect, s, n, assume_sorted)
+                for s in sizes])
 
         c = next_color()
         plt.plot(sizes, snp_timing / np_timing, label="intersect %d arrays" % n, color=c)
@@ -127,29 +162,32 @@ def bm_intersect():
     plt.xlim([min(sizes), max(sizes)])
     plt.legend()
     plt.tight_layout()
-    plt.savefig("bm_intersect.png", dpi=300)
+    suffix = "_assume_sorted" if assume_sorted else ""
+    plt.savefig("bm_intersect%s.png" % suffix, dpi=300)
 
-def bm_merge():
+def plot_merge_benchmark(assume_sorted):
     """
     Create the plot for the union benchmark.
     """
     plt.figure(figsize=(6, 4))
     plt.subplot(111)
 
-    sizes = [1e3, 2e3, 5e3, 1e4, 2e4, 5e4]
-    colors = list(reversed(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-        '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-        '#bcbd22', '#17becf']))
+    sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
+    colors = ['#17becf', '#bcbd22', '#7f7f7f', '#e377c2', '#8c564b', '#9467bd']
     def next_color():
         return colors.pop()
 
-    for n in [2, 5, 10, 15]:
+    for n in [15, 10, 5, 2]:
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
-        for i in range(1):
-            snp_timing += np.array([get_snp_merge_time(s, n) for s in sizes])
-            np_timing += np.array([get_np_merge_time(s, n) for s in sizes])
+        for i in range(5):
+            snp_timing += np.array([
+                benchmark(snp.kway_merge, s, n, assume_sorted)
+                for s in sizes])
+            np_timing += np.array([
+                benchmark(np_kway_merge, s, n, assume_sorted)
+                for s in sizes])
 
         c = next_color()
         plt.plot(sizes, snp_timing / np_timing, label="merge %d arrays" % n, color=c)
@@ -160,9 +198,13 @@ def bm_merge():
     plt.xlim([min(sizes), max(sizes)])
     plt.legend()
     plt.tight_layout()
-    plt.savefig("bm_merge.png", dpi=300)
+    suffix = "_assume_sorted" if assume_sorted else ""
+    plt.savefig("bm_merge%s.png" % suffix, dpi=300)
 
 if __name__ == "__main__":
-    bm_merge()
-    bm_intersect()
+    print("The benchmark needs about 2GB of memory.")
+    plot_merge_benchmark(assume_sorted=False)
+    plot_merge_benchmark(assume_sorted=True)
+    plot_intersect_benchmark(assume_sorted=False)
+    plot_intersect_benchmark(assume_sorted=True)
 
