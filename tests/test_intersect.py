@@ -1,5 +1,7 @@
 
 from abc import ABCMeta, abstractmethod
+import sys
+import weakref
 import unittest
 import numpy as np
 
@@ -228,7 +230,136 @@ class IntersectBase(metaclass=ABCMeta):
         self.assertRaises(TypeError, snp.intersect, 3, b)
         self.assertRaises(TypeError, snp.intersect, b, 2)
         self.assertRaises(TypeError, snp.intersect, 3, "a")
-        
+
+    def test_reference_counting_principle(self):
+        """
+        Check that the reference counting works as expected with standard
+        numpy arrays.
+        """
+
+        # Create inputs
+        a = np.arange(10, dtype=self.get_dtype()) * 3
+        b = np.arange(10, dtype=self.get_dtype()) * 2 + 5
+
+        # Check ref count for input. Numpy arrays have two references.
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+
+        # Create weak refs for inputs
+        weak_a = weakref.ref(a)
+        weak_b = weakref.ref(b)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertIsNotNone(weak_a())
+        self.assertIsNotNone(weak_b())
+
+        # Delete a
+        del a
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertIsNone(weak_a())
+        self.assertIsNotNone(weak_b())
+
+        # Delete b
+        del b
+        self.assertIsNone(weak_a())
+        self.assertIsNone(weak_b())
+
+    def test_reference_counting(self):
+        """
+        Check that the reference counting is done correctly.
+        """
+
+        # Create inputs
+        a = np.arange(10, dtype=self.get_dtype()) * 3
+        b = np.arange(10, dtype=self.get_dtype()) * 2 + 5
+
+        # Check ref count for input. Numpy arrays have two references.
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+
+        # Create weak refs for inputs
+        weak_a = weakref.ref(a)
+        weak_b = weakref.ref(b)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertIsNotNone(weak_a())
+        self.assertIsNotNone(weak_b())
+
+        ## Intersect
+        i = snp.intersect(a, b)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertEqual(sys.getrefcount(i), 2)
+
+        # Create weakref for i
+        weak_i = weakref.ref(i)
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertEqual(sys.getrefcount(i), 2)
+        self.assertIsNotNone(weak_a())
+        self.assertIsNotNone(weak_b())
+        self.assertIsNotNone(weak_i())
+
+        # Delete a
+        del a
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertEqual(sys.getrefcount(i), 2)
+        self.assertIsNone(weak_a())
+        self.assertIsNotNone(weak_b())
+        self.assertIsNotNone(weak_i())
+
+        # Delete b
+        del b
+        self.assertEqual(sys.getrefcount(i), 2)
+        self.assertIsNone(weak_a())
+        self.assertIsNone(weak_b())
+        self.assertIsNotNone(weak_i())
+
+        # Delete i
+        del i
+        self.assertIsNone(weak_a())
+        self.assertIsNone(weak_b())
+        self.assertIsNone(weak_i())
+
+    def test_reference_counting_early_exit_type(self):
+        """
+        Check that the reference counts of the input arrary does not change
+        even when the the method exists premature due to incompatible inputs
+        types.
+        """
+        a = np.array(10)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertRaises(TypeError, snp.intersect, a, [1, 2])
+        self.assertEqual(sys.getrefcount(a), 2)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertRaises(TypeError, snp.intersect, [1, 2], a)
+        self.assertEqual(sys.getrefcount(a), 2)
+
+    def test_reference_counting_early_exit_dim(self):
+        """
+        Check that the reference counts of the input arrary does not change
+        even when the the method exists premature due multidimensional input
+        arrays.
+        """
+        a = np.zeros((10, 2))
+        b = np.arange(10)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+        self.assertRaises(ValueError, snp.intersect, a, b)
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertRaises(ValueError, snp.intersect, b, a)
+        self.assertEqual(sys.getrefcount(a), 2)
+        self.assertEqual(sys.getrefcount(b), 2)
+
 
 class IntersectTestCase_Double(IntersectBase, unittest.TestCase):
     def get_dtype(self):
