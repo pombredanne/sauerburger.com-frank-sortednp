@@ -248,14 +248,14 @@ static PyMethodDef SortedNpMethods[] = {
 // Define module itself.
 static struct PyModuleDef sortednpmodule = {
     PyModuleDef_HEAD_INIT,
-    "sortednp",  // Name of the module
+    "_sortednp",  // Name of the module
     NULL,  // Module docstring
     -1,  // The module keeps state in global variables.
     SortedNpMethods
 };
 
 // Init method
-PyMODINIT_FUNC PyInit_sortednp(void) {
+PyMODINIT_FUNC PyInit__sortednp(void) {
     import_array();
     return PyModule_Create(&sortednpmodule);
 }
