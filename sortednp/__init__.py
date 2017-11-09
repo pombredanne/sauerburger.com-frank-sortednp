@@ -57,5 +57,23 @@ def kway_intersect(*arrays, assume_sorted=True):
     Note on the performance: The function intersects the arrays one-by-one.
     This is not the most performant implementation. 
     """
+
+    if len(arrays) == 0:
+        raise TypeError("Merge expects at least one array.")
+
     # start with smallest non-callable
-    pass
+    inf = float('inf')
+    len_array = [(inf if callable(a) else len(a), a) for a in arrays]
+    len_array = sorted(len_array, key=lambda x: x[0])
+    arrays = [a for l, a in len_array]
+
+    i = arrays.pop()
+    i = resolve(i)
+    if not assume_sorted:
+        i.sort()
+    for a in arrays:
+        a = resolve(a)
+        if not assume_sorted:
+            a.sort()
+        i = intersect(i, a)
+    return i
