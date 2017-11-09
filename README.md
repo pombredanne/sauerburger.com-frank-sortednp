@@ -33,8 +33,8 @@ $ cd sortednp && python3 setup.py install
 -->
 
 ```bash
-$ git clone git@gitlab.sauerburger.com:frank/sortednp.git
-$ python3 setup.py install
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
+$ cd sortednp && python3 setup.py install
 ```
 
 # Usage
