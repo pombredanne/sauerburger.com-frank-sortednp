@@ -2,12 +2,13 @@
 
 import timeit
 import numpy as np
-import sortednp as snp
 from functools import reduce
-
+import argparse
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+import sortednp as snp
 
 np.random.seed(2853)
 
@@ -129,7 +130,7 @@ def benchmark(algo, array_size, n_arrays, assume_sorted):
 #     return get_time(func)
 
 
-def plot_intersect_benchmark(assume_sorted):
+def plot_intersect_benchmark(assume_sorted, n_average):
     """
     Create the plot for the intersection benchmark.
     """
@@ -145,7 +146,7 @@ def plot_intersect_benchmark(assume_sorted):
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
-        for i in range(5):
+        for i in range(n_average):
             snp_timing += np.array([
                 benchmark(snp.kway_intersect, s, n, assume_sorted)
                 for s in sizes])
@@ -165,7 +166,7 @@ def plot_intersect_benchmark(assume_sorted):
     suffix = "_assume_sorted" if assume_sorted else ""
     plt.savefig("bm_intersect%s.png" % suffix, dpi=300)
 
-def plot_merge_benchmark(assume_sorted):
+def plot_merge_benchmark(assume_sorted, n_average):
     """
     Create the plot for the union benchmark.
     """
@@ -181,7 +182,7 @@ def plot_merge_benchmark(assume_sorted):
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
-        for i in range(5):
+        for i in range(n_average):
             snp_timing += np.array([
                 benchmark(snp.kway_merge, s, n, assume_sorted)
                 for s in sizes])
@@ -202,9 +203,29 @@ def plot_merge_benchmark(assume_sorted):
     plt.savefig("bm_merge%s.png" % suffix, dpi=300)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Create benchmark plots to "
+        "compare the sortednp package to the default numpy methods.")
+
+    parser.add_argument("-n", "--average", default=5, type=int, dest='n',
+        help="Repeat each operation n times and take the average, "
+        "default is 5.")
+
+    parser.add_argument("--quick", action="store_const", dest='n', const=1,
+        help="Perform each test only once.")
+
+    args = parser.parse_args()
+
     print("The benchmark needs about 2GB of memory.")
-    plot_merge_benchmark(assume_sorted=False)
-    plot_merge_benchmark(assume_sorted=True)
-    plot_intersect_benchmark(assume_sorted=False)
-    plot_intersect_benchmark(assume_sorted=True)
+
+    print("Benchmark: merge, assume_sorted=False")
+    plot_merge_benchmark(assume_sorted=False, n_average=args.n)
+
+    print("Benchmark: merge, assume_sorted=True")
+    plot_merge_benchmark(assume_sorted=True, n_average=args.n)
+
+    print("Benchmark: intersect, assume_sorted=False")
+    plot_intersect_benchmark(assume_sorted=False, n_average=args.n)
+
+    print("Benchmark: intersect, assume_sorted=True")
+    plot_intersect_benchmark(assume_sorted=True, n_average=args.n)
 
