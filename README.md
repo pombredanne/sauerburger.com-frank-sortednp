@@ -91,13 +91,36 @@ of numpy. The ratio of the execution time between sortednp and numpy is
 deplayed as a function the array size. The tests are performed for
 merging/intersecting two or more arrays.
 
-The considered time includes one the time required to merge and intersect
-*sorted* arrays and not the time required to sort the arrays in the first
-place. This is in agreement with the idea that sorted arrays are the basic
-data structure and that sorted arrays are stored on disk.
+The performance can be estimated under two different assumptions. If the arrays
+which are merged/intersected are already sorted, one should not consider the
+time it takes to sort the random arrays in the benchmark. On the other hand if
+one considers a scenario in which the arrays are not sorted, one should take
+the sorting time into account.
 
-## Intersecting
-![Intersection benchmark](https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect.png?job=benchmark)
+Both benchmarks are shown in the following table.
 
-## Merging
-![Union benchmark](https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge.png?job=benchmark)
+<table>
+  <tr>
+    <th>Assume sorted</th>
+    <th>Intersect</th>
+    <th>Merge</th>
+  </tr>
+  <tr>
+    <td><code>True</code></td> 
+    <td>
+        <img alt="Intersect benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect_assume_sorted.png?job=benchmark" />
+    </td>
+    <td>
+        <img alt="Merge benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge_assume_sorted.png?job=benchmark" />
+    </td>
+  </tr>
+  <tr>
+    <td><code>False</code></td> 
+    <td>
+        <img alt="Intersect benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect.png?job=benchmark" />
+    </td>
+    <td>
+        <img alt="Merge benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge.png?job=benchmark" />
+    </td>
+  </tr>
+

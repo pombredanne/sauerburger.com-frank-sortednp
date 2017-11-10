@@ -22,13 +22,29 @@ benchmark:
   stage: benchmark
   tags:
    - high-mem
+  only:
+    - master
   script:
    - pip install matplotlib
    - python3 benchmark.py
 
   artifacts:
-    expire_in: 10 weeks
+    expire_in: 6 mos
     paths:
-     - bm_intersect.png
-     - bm_merge.png
+     - "bm_*.png"
+    
+
+benchmark_quick:
+  stage: benchmark
+  tags:
+   - high-mem
+  script:
+   - pip install matplotlib
+   - python3 benchmark.py --quick
+  except:
+    - master
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "bm_*.png"
     
