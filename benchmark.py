@@ -138,7 +138,7 @@ def plot_intersect_benchmark(assume_sorted, n_average):
     plt.subplot(111)
 
     sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
-    colors = ['#17becf', '#bcbd22', '#7f7f7f', '#e377c2', '#8c564b', '#9467bd']
+    colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
     def next_color():
         return colors.pop()
 
@@ -174,7 +174,7 @@ def plot_merge_benchmark(assume_sorted, n_average):
     plt.subplot(111)
 
     sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
-    colors = ['#17becf', '#bcbd22', '#7f7f7f', '#e377c2', '#8c564b', '#9467bd']
+    colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
     def next_color():
         return colors.pop()
 
