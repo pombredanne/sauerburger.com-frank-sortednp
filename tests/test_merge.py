@@ -13,6 +13,33 @@ class MergeBase(metaclass=ABCMeta):
     implement have to overwrite the dtype method.
     """
 
+    def assertListAlmostEqual(self, a, b, *args, **kwds):
+        """
+        Check that the given lists are almost equal.
+        """
+        for A, B in zip(a, b):
+            self.assertAlmostEqual(A, B, *args, **kwds)
+
+    def test_assertListAlmostEqual_pass(self):
+        """
+        Check that assertListAlmostEqual raises no exception, if the given
+        values are almost equal.
+        """
+        a = [0, 1, 2 + 1e-9, 10]
+        b = [0, 1, 2       , 10]
+
+        self.assertListAlmostEqual(a, b)
+
+    def test_assertListAlmostEqual_fail(self):
+        """
+        Check that assertListAlmostEqual raises an exception, if the given
+        values differ.
+        """
+        a = [0, 1, 2 + 1e-3, 10]
+        b = [0, 1, 2       , 10]
+
+        self.assertRaises(AssertionError, self.assertListAlmostEqual, a, b)
+                
     @abstractmethod
     def get_dtype(self):
         """
@@ -280,7 +307,161 @@ class MergeBase(metaclass=ABCMeta):
 
 class MergeTestCase_Double(MergeBase, unittest.TestCase):
     def get_dtype(self):
-        return 'float'
+        return 'float64'
+
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([-1.3e300, -1.2e300, -2.3e-200], dtype=self.get_dtype())
+        b = np.array([-1.1e300, 3.14e20], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertListAlmostEqual(list(m),
+            [-1.3e300, -1.2e300, -1.1e300, -2.3e-200, 3.14e20])
+        self.assertEqual(m.dtype, self.get_dtype())
+
+class MergeTestCase_Float(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'float32'
+
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([-1.3e30, -1.2e30, -2.3e-20], dtype=self.get_dtype())
+        b = np.array([-1.1e30, 3.14e20], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        i_corr = np.array([-1.3e30, -1.2e30, -1.1e30, -2.3e-20, 3.14e20],
+            dtype=self.get_dtype())
+        self.assertListAlmostEqual(list(m), list(i_corr), places=3)
+        self.assertEqual(m.dtype, self.get_dtype())
 
 
+class MergeTestCase_Int8(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int8'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 127], dtype=self.get_dtype())
+        b = np.array([-128, 4], dtype=self.get_dtype())
 
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [-128, 2, 4, 127])
+        self.assertEqual(m.dtype, self.get_dtype())
+
+class MergeTestCase_Int16(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int16'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 32767], dtype=self.get_dtype())
+        b = np.array([-32768, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [-32768, 2, 4, 32767])
+        self.assertEqual(m.dtype, self.get_dtype())
+
+class MergeTestCase_Int32(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int32'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 2147483647], dtype=self.get_dtype())
+        b = np.array([-2147483647, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [-2147483647, 2, 4, 2147483647])
+        self.assertEqual(m.dtype, self.get_dtype())
+
+class MergeTestCase_Int64(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int64'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 9223372036854775807], dtype=self.get_dtype())
+        b = np.array([-9223372036854775807, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [-9223372036854775807, 2, 4, 9223372036854775807])
+        self.assertEqual(m.dtype, self.get_dtype())
+ 
+ 
+class MergeTestCase_UInt8(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint8'
+        a = np.array([2, 255], dtype=self.get_dtype())
+        b = np.array([0, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [0, 2, 4, 255])
+        self.assertEqual(m.dtype, self.get_dtype())
+class MergeTestCase_UInt16(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint16'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 65535], dtype=self.get_dtype())
+        b = np.array([0, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [0, 2, 4, 65535])
+        self.assertEqual(m.dtype, self.get_dtype())
+class MergeTestCase_UInt32(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint32'
+    def test_type_limites(self):
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 4294967295], dtype=self.get_dtype())
+        b = np.array([0, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [0, 2, 4, 4294967295])
+        self.assertEqual(m.dtype, self.get_dtype())
+class MergeTestCase_UInt64(MergeBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint64'
+        """
+        Ensure that merging works with numbers specific to this data type.
+        """
+        a = np.array([2, 18446744073709551615], dtype=self.get_dtype())
+        b = np.array([0, 4], dtype=self.get_dtype())
+
+        m = snp.merge(a, b)
+        self.assertEqual(list(m), [0, 2, 4, 18446744073709551615])
+        self.assertEqual(m.dtype, self.get_dtype())
+
+
+class MergeTestCase_TypeError(unittest.TestCase):
+    def test_invalid_type(self):
+        """
+        Ensure that merge raises an exception, if it is called with an
+        unsupported type.
+        """
+        a = np.array([1, 3, 7], dtype='complex')
+        b = np.array([2, 5, 6], dtype='complex')
+
+        self.assertRaises(ValueError, snp.merge, a, b)
+
+    def test_different_types(self):
+        """
+        Ensure that merge raises an exception, if it is called with two
+        different types.
+        """
+        a = np.array([1, 3, 7], dtype='float32')
+        b = np.array([2, 5, 6], dtype='float64')
+
+        self.assertRaises(ValueError, snp.merge, a, b)

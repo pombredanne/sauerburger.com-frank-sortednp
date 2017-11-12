@@ -4,9 +4,9 @@ import numpy
 
 
 snp_backend = Extension('_sortednp', language='c++',
-    extra_compile_args=['-std=c99'],
+    extra_compile_args=['-g'],
     include_dirs=[numpy.get_include()],
-    sources = ['sortednpmodule.c'])
+    sources = ['sortednpmodule.cpp'])
 
 setup (name='sortednp',
     version='0.0.0',
