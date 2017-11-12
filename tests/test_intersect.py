@@ -13,6 +13,35 @@ class IntersectBase(metaclass=ABCMeta):
     implement have to overwrite the dtype method.
     """
 
+
+    def assertListAlmostEqual(self, a, b, *args, **kwds):
+        """
+        Check that the given lists are almost equal.
+        """
+        for A, B in zip(a, b):
+            self.assertAlmostEqual(A, B, *args, **kwds)
+
+    def test_assertListAlmostEqual_pass(self):
+        """
+        Check that assertListAlmostEqual raises no exception, if the given
+        values are almost equal.
+        """
+        a = [0, 1, 2 + 1e-9, 10]
+        b = [0, 1, 2       , 10]
+
+        self.assertListAlmostEqual(a, b)
+
+    def test_assertListAlmostEqual_fail(self):
+        """
+        Check that assertListAlmostEqual raises an exception, if the given
+        values differ.
+        """
+        a = [0, 1, 2 + 1e-3, 10]
+        b = [0, 1, 2       , 10]
+
+        self.assertRaises(AssertionError, self.assertListAlmostEqual, a, b)
+                
+
     @abstractmethod
     def get_dtype(self):
         """
@@ -360,9 +389,162 @@ class IntersectBase(metaclass=ABCMeta):
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
 
-
 class IntersectTestCase_Double(IntersectBase, unittest.TestCase):
     def get_dtype(self):
-        return 'float'
+        return 'float64'
 
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-1.3e300, -1.2e300, -2.3e-200, 3.14e20], dtype=self.get_dtype())
+        b = np.array([-1.3e300, -1.1e300, -2.3e-200, 3.14e20], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertListAlmostEqual(list(i), [-1.3e300, -2.3e-200, 3.14e20])
+        self.assertEqual(i.dtype, self.get_dtype())
+
+class IntersectTestCase_Float(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'float32'
+
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-1.3e30, -1.2e30, -2.3e-20, 3.14e20], dtype=self.get_dtype())
+        b = np.array([-1.3e30, -1.1e30, -2.3e-20, 3.14e20], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        i_corr = np.array([-1.3e30, -2.3e-20, 3.14e20],
+            dtype=self.get_dtype())
+        self.assertListAlmostEqual(list(i), list(i_corr), places=3)
+        self.assertEqual(i.dtype, self.get_dtype())
+
+
+class IntersectTestCase_Int8(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int8'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-128, 3, 4, 127], dtype=self.get_dtype())
+        b = np.array([-128, 3, 2, 127], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [-128, 3, 127])
+        self.assertEqual(i.dtype, self.get_dtype())
+
+class IntersectTestCase_Int16(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int16'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-32768, 3, 4, 32767], dtype=self.get_dtype())
+        b = np.array([-32768, 3, 2, 32767], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [-32768, 3, 32767])
+        self.assertEqual(i.dtype, self.get_dtype())
+
+class IntersectTestCase_Int32(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int32'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-2147483647, 3, 4, 2147483647], dtype=self.get_dtype())
+        b = np.array([-2147483647, 3, 2, 2147483647], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [-2147483647, 3, 2147483647])
+        self.assertEqual(i.dtype, self.get_dtype())
+
+class IntersectTestCase_Int64(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'int64'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([-9223372036854775807, 3, 4, 9223372036854775807], dtype=self.get_dtype())
+        b = np.array([-9223372036854775807, 3, 2, 9223372036854775807], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [-9223372036854775807, 3, 9223372036854775807])
+        self.assertEqual(i.dtype, self.get_dtype())
+ 
+ 
+class IntersectTestCase_UInt8(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint8'
+        a = np.array([0, 3, 4, 255], dtype=self.get_dtype())
+        b = np.array([0, 3, 2, 255], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [0, 3, 255])
+        self.assertEqual(i.dtype, self.get_dtype())
+class IntersectTestCase_UInt16(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint16'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([0, 3, 4, 65535], dtype=self.get_dtype())
+        b = np.array([0, 3, 2, 65535], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [0, 3, 65535])
+        self.assertEqual(i.dtype, self.get_dtype())
+class IntersectTestCase_UInt32(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint32'
+    def test_type_limites(self):
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([0, 3, 4, 4294967295], dtype=self.get_dtype())
+        b = np.array([0, 3, 2, 4294967295], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [0, 3, 4294967295])
+        self.assertEqual(i.dtype, self.get_dtype())
+class IntersectTestCase_UInt64(IntersectBase, unittest.TestCase):
+    def get_dtype(self):
+        return 'uint64'
+        """
+        Ensure that intersecting works with numbers specific to this data type.
+        """
+        a = np.array([0, 3, 4, 18446744073709551615], dtype=self.get_dtype())
+        b = np.array([0, 3, 2, 18446744073709551615], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+        self.assertEqual(list(i), [0, 3, 18446744073709551615])
+        self.assertEqual(i.dtype, self.get_dtype())
+
+class IntersectTestCase_TypeError(unittest.TestCase):
+    def test_invalid_type(self):
+        """
+        Ensure that intersect raises an exception, if it is called with an
+        unsupported type.
+        """
+        a = np.array([1, 3, 7], dtype='complex')
+        b = np.array([2, 5, 6], dtype='complex')
+
+        self.assertRaises(ValueError, snp.intersect, a, b)
+
+    def test_different_types(self):
+        """
+        Ensure that intersect raises an exception, if it is called with two
+        different types.
+        """
+        a = np.array([1, 3, 7], dtype='float32')
+        b = np.array([2, 5, 6], dtype='float64')
+
+        self.assertRaises(ValueError, snp.intersect, a, b)
 
