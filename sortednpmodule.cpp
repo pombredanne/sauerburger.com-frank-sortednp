@@ -5,7 +5,7 @@
 
 #include <numpy/arrayobject.h>
 
-#define SEARCH_METHOD simple_search
+#define SEARCH_METHOD galloping_serach
 
 template <class T>
 void galloping_serach(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
