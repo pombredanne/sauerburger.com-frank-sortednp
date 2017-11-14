@@ -1,10 +1,92 @@
 
-#include <stdbool.h>
 #include <Python.h>
 
 #define NPY_NO_DEPRECATED_API NPY_1_12_API_VERSION
 
 #include <numpy/arrayobject.h>
+
+#define SEARCH_METHOD simple_search
+
+template <class T>
+void galloping_serach(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
+    // Advance the pointer in order to find the given value in the sorted array.
+    // If the value if found, array index is at the first occurrence of value.
+    // If the value is not found, the array index is at the first item larger
+    // than the search value, or beyond the array limits.
+    T value = *((T*) PyArray_GETPTR1(array, i));
+
+    // If already at correct location or beyond
+    if (target <= value) {
+      return;
+    }
+
+    npy_intp delta = 1;
+    npy_intp i_prev = i;
+    while (value < target) {
+        i_prev = i;
+        i += delta;
+        if (len <= i) {
+            i = len;
+            value = *((T*) PyArray_GETPTR1(array, i));
+            break;
+        }
+        value = *((T*) PyArray_GETPTR1(array, i));
+        delta *= 2;
+    }
+
+    binary_search(target, array, i_prev, i);
+}
+
+template <class T>
+void binary_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
+    // Advance the pointer in order to find the given value in the sorted array.
+    // If the value if found, array index is at the first occurrence of value.
+    // If the value is not found, the array index is at the first item larger
+    // than the search value, or beyond the array limits.
+    T value = *((T*) PyArray_GETPTR1(array, i));
+
+    // If already at correct location or beyond
+    if (target <= value) {
+      return;
+    }
+
+    npy_intp i_right = len - 1;  // is always GREATER OR EQUAL
+    npy_intp i_left = i;  // is always LESS than value
+
+
+    T right = *((T*) PyArray_GETPTR1(array, i_right));
+    if (right < target) {
+      i = i_right + 1;  // move beyond array bounds
+      return;
+    }
+
+    while (i_left + 1 < i_right) {
+        i = (i_right + i_left) / 2;
+        value = *((T*) PyArray_GETPTR1(array, i));
+
+        if (target <= value) {
+          i_right = i;
+        } else {
+          i_left = i;
+        }
+    }
+
+    i = i_right;
+}
+
+template <class T>
+void simple_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
+    // Advance the pointer in order to find the given value in the sorted array.
+    // If the value if found, array index is at the first occurrence of value.
+    // If the value is not found, the array index is at the first item larger
+    // than the search value, or beyond the array limits.
+    T value = *((T*) PyArray_GETPTR1(array, i));
+
+    while (value < target && i < len) {
+        i++;  // potentially move beyond the array bounds
+        value = *((T*) PyArray_GETPTR1(array, i));
+    }
+}
 
 
 /**
@@ -44,22 +126,23 @@ PyObject* intersect(T template_type, PyArrayObject *a_array, PyArrayObject *b_ar
 
     // Actual computation of the intersection.
     while (i_a < len_a && i_b < len_b) {
-        bool matched = false;
-        if (v_a == v_b) {
-          T *t = (T*) PyArray_GETPTR1(out_array, i_o);
-          *t = v_a;
-
-          i_o++;
-          matched = true;
-        }
-        
-        if (v_a < v_b || matched) {
-            i_a++;
+        if (v_a < v_b) {
+            SEARCH_METHOD(v_b, a_array, i_a, len_a);
             v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
+        } else if (v_b < v_a) {
+            SEARCH_METHOD(v_a, b_array, i_b, len_b);
+            v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
         }
 
-        if (v_b < v_a || matched) {
+        if (v_a == v_b) {
+            T *t = (T*) PyArray_GETPTR1(out_array, i_o);
+            *t = v_a;
+
+            i_o++;
+            i_a++;
             i_b++;
+
+            v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
             v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
         }
     }
