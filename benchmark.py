@@ -35,16 +35,15 @@ def get_time(func, *args, **kwds):
     func(*args, **kwds)
     return timeit.default_timer() - start_time
 
-def get_random_array(size, density=1):
+def get_random_array(size, p=2):
     """
     Return an random array of the given size. The density paramter describes
     how likely it is to have duplicated items. Higher values produce more
     duplicates.
     """
-    p = 1.5
     pool = np.arange(0, size * p).astype('float64')
     np.random.shuffle(pool)
-    a = pool[:int(size / p)]
+    a = pool[:int(size)]
     return a
 
 def benchmark(algo, array_size, n_arrays, assume_sorted):
