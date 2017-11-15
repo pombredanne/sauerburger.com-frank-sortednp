@@ -1,9 +1,5 @@
 
-#include <Python.h>
-
-#define NPY_NO_DEPRECATED_API NPY_1_12_API_VERSION
-
-#include <numpy/arrayobject.h>
+#include "sortednpmodule.h"
 
 #define SEARCH_METHOD galloping_serach
 
@@ -168,7 +164,7 @@ PyObject* intersect(T template_type, PyArrayObject *a_array, PyArrayObject *b_ar
  * elements common in both arrays. The ownership of the returned reference is
  * passed to the caller.
  */
-static PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
+PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
     // References to the arguments are borrowed. Counter should not be
     // incremented since input arrays are not stored.
 
@@ -358,7 +354,7 @@ PyObject* merge(T template_type, PyArrayObject *a_array, PyArrayObject *b_array)
  * elements of the input arrays. The ownership of the returned reference is
  * passed to the caller.
  */
-static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
+PyObject *sortednp_merge(PyObject *self, PyObject *args) {
     // References to the arguments are borrowed. Counter should not be
     // incremented since input arrays are not stored.
 
@@ -467,15 +463,14 @@ static PyObject *sortednp_merge(PyObject *self, PyObject *args) {
     return out;
 }
 
-// Define list of methods in the module.
-static PyMethodDef SortedNpMethods[] = {
+PyMethodDef SortedNpMethods[] = {
     {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
     {"intersect",  sortednp_intersect, METH_VARARGS, "Intersect two sorted numpy arrays."},
     {NULL, NULL, 0, NULL}  // Sentinel
 };
 
 // Define module itself.
-static struct PyModuleDef sortednpmodule = {
+struct PyModuleDef sortednpmodule = {
     PyModuleDef_HEAD_INIT,
     "_sortednp",  // Name of the module
     NULL,  // Module docstring

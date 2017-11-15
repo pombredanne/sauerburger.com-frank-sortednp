@@ -6,18 +6,37 @@ before_script:
 
 stages:
   - test
+  - lint
   - benchmark
 
-unittest:
+################################################################################
+# Tests
+pythontest:
   stage: test
   script:
-    - python3 setup.py test 
+    - make python-based-test
 
 README:
   stage: test
   script:
    - doxec README.md 
 
+cxxtest:
+  stage: test
+  script:
+    - make install-gtest
+    - make cxx-based-test
+
+################################################################################
+# Lint
+
+cpplint:
+  stage: lint
+  script:
+    - python3 cpplint.py *.cpp *.h
+
+################################################################################
+# Benchmark
 benchmark:
   stage: benchmark
   tags:
@@ -32,7 +51,6 @@ benchmark:
     expire_in: 6 mos
     paths:
      - "bm_*.png"
-    
 
 benchmark_quick:
   stage: benchmark
