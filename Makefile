@@ -25,9 +25,7 @@ cxxtest: cxxtest.o sortednpmodule.o
 clean:
 	rm -f cxxtest.o cxxtest sortednpmodule.o
 
-install-gtest: /usr/local/lib/libgtest.so
-
-/usr/local/lib/libgtest.so:
+install-gtest: googletest
 	cd googletest/googletest && \
 	export GTEST_DIR=$$PWD && \
 	$(CXX) -isystem $${GTEST_DIR}/include -fpic -I$${GTEST_DIR} \
