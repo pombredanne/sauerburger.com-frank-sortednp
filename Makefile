@@ -31,7 +31,7 @@ install-gtest: googletest
 	$(CXX) -isystem $${GTEST_DIR}/include -fpic -I$${GTEST_DIR} \
 	    -pthread -c $${GTEST_DIR}/src/gtest-all.cc -o libgtest.o && \
 	$(CXX) -shared -o $${GTEST_DIR}/libgtest.so $${GTEST_DIR}/libgtest.o && \
-	rm /usr/local/lib/libgtest.so && \
+	rm -f /usr/local/lib/libgtest.so && \
 	mv $${GTEST_DIR}/libgtest.so /usr/local/lib/libgtest.so && \
 	rm -rf /usr/local/include/gtest && \
 	mv $${GTEST_DIR}/include/gtest /usr/local/include/gtest && \
