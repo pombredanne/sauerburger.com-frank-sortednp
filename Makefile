@@ -2,7 +2,7 @@
 PYTHON=python3
 GTEST="-I/usr/local/include/gtest"
 FLAGS="-Wno-conversion-null"
-NUMPY="-I/usr/local/lib/python3.4/dist-packages/numpy/core/include"
+NUMPY=-I$(shell $(PYTHON) -c "import numpy; print(numpy.get_include())")
 CXX=g++
 
 install:
