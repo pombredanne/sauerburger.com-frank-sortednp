@@ -34,7 +34,11 @@ void galloping_serach(T target, PyArrayObject *array, npy_intp &i, npy_intp &len
         delta *= 2;
     }
 
-    binary_search(target, array, i_prev, i);
+    npy_intp higher = i;
+    higher++;
+    i = i_prev;
+
+    binary_search(target, array, i, higher);
 }
 
 template <class T>

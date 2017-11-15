@@ -48,6 +48,19 @@ class IntersectBase(metaclass=ABCMeta):
         Returns the numpy data type, which should be used for all tests.
         """
         pass
+
+    def test_readme(self):
+        """
+        Use example from README.
+        """
+        a = np.array([0, 3, 4, 6, 7], dtype=self.get_dtype())
+        b = np.array([1, 2, 3, 5, 7, 9], dtype=self.get_dtype())
+
+        i = snp.intersect(a, b)
+
+        self.assertEqual(list(i), [3, 7])
+        self.assertEqual(i.dtype, self.get_dtype())
+
     
     def test_simple_middle(self):
         """
