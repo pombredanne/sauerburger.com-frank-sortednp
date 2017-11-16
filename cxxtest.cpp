@@ -7,6 +7,9 @@
 
 #include "sortednpmodule.h"
 
+typedef ::testing::Types<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t,
+  int32_t, int64_t, float, double> SupportedTypes;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Definition of helper functions
 
@@ -85,9 +88,15 @@ std::string toString(T type, PyArrayObject* array) {
 ////////////////////////////////////////////////////////////////////////////////
 // Test of helper functions, i.e. self-test
 
+
+template <typename T>
+class SelfTest : public ::testing::Test { };
+
+TYPED_TEST_CASE(SelfTest, SupportedTypes);
+
 // Test the helper method, whether it indeed returns the correct numpy typenum
 // for a few selected types.
-TEST(selftest, getNpyType) {
+TEST(SelfTest, getNpyType) {
     uint8_t ui8 = 0;
     int16_t i16 = 0;
     uint32_t ui32 = 0;
@@ -103,91 +112,28 @@ TEST(selftest, getNpyType) {
     EXPECT_EQ(getNpyType(f64), NPY_FLOAT64);
 }
 
-// Check that the helper function toArray returns the correct arrays from
-// uint8 pointers of different sizes.
-TEST(selftest, toArray_uint8) {
+// Check that the helper function toArray returns the correct arrays from a
+// field of different sizes.
+TYPED_TEST(SelfTest, toArray) {
   {
     // length 3
     const int len = 3;
-    uint8_t values[len] = {4, 2, 9};
+    TypeParam values[len] = {4, 2, 9};
 
     PyArrayObject *arr = toArray(len, values);
     ASSERT_TRUE(arr != NULL);
     EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
 
-    EXPECT_EQ(4, *(uint8_t*) PyArray_GETPTR1(arr, 0));
-    EXPECT_EQ(2, *(uint8_t*) PyArray_GETPTR1(arr, 1));
-    EXPECT_EQ(9, *(uint8_t*) PyArray_GETPTR1(arr, 2));
+    EXPECT_EQ(4, *(TypeParam*) PyArray_GETPTR1(arr, 0));
+    EXPECT_EQ(2, *(TypeParam*) PyArray_GETPTR1(arr, 1));
+    EXPECT_EQ(9, *(TypeParam*) PyArray_GETPTR1(arr, 2));
 
     Py_DECREF(arr);
   }
   {
     // length 0
     const int len = 0;
-    uint8_t values[1] = {49};
-
-    PyArrayObject *arr = toArray(len, values);
-    ASSERT_TRUE(arr != NULL);
-    EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
-
-    Py_DECREF(arr);
-  }
-}
-
-// Check that the helper function toArray returns the correct arrays from
-// int32 pointers of different sizes.
-TEST(selftest, toArray_int32) {
-  {
-    // length 3
-    const int len = 3;
-    int32_t values[len] = {4, 2321, -9};
-
-    PyArrayObject *arr = toArray(len, values);
-    ASSERT_TRUE(arr != NULL);
-    EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
-
-    EXPECT_EQ(4, *(int32_t*) PyArray_GETPTR1(arr, 0));
-    EXPECT_EQ(2321, *(int32_t*) PyArray_GETPTR1(arr, 1));
-    EXPECT_EQ(-9, *(int32_t*) PyArray_GETPTR1(arr, 2));
-
-    Py_DECREF(arr);
-  }
-  {
-    // length 0
-    const int len = 0;
-    int32_t values[1] = {49};
-
-    PyArrayObject *arr = toArray(len, values);
-    ASSERT_TRUE(arr != NULL);
-    EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
-
-    Py_DECREF(arr);
-  }
-}
-
-// Check that the helper function toArray returns the correct arrays from
-// float64 pointers of different sizes.
-TEST(selftest, toArray_float64) {
-  {
-    // length 3
-    const int len = 3;
-    double values[len] = {4, 3.14, -9};
-
-    PyArrayObject *arr = toArray(len, values);
-    ASSERT_TRUE(arr != NULL);
-    EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
-
-    EXPECT_EQ(4, *(double*) PyArray_GETPTR1(arr, 0));
-    EXPECT_EQ(3.14, *(double*) PyArray_GETPTR1(arr, 1));
-    EXPECT_EQ(-9, *(double*) PyArray_GETPTR1(arr, 2));
-
-    Py_DECREF(arr);
-  }
-  {
-    // length 0
-    const int len = 0;
-    double values[1] = {49};
-
+    TypeParam values[1] = {49};
     PyArrayObject *arr = toArray(len, values);
     ASSERT_TRUE(arr != NULL);
     EXPECT_EQ(len, PyArray_DIMS(arr)[0]);
@@ -198,7 +144,7 @@ TEST(selftest, toArray_float64) {
 
 // Test the helper method which sets a format string based on the template
 // type.
-TEST(selftest, getFormatString) {
+TEST(SelfTest, getFormatString) {
     const char *format;
 
     uint8_t ui8 = 0;
@@ -228,86 +174,27 @@ TEST(selftest, getFormatString) {
 
 }
 
-// Check that float32 array of different lengths are correctly converted to
+// Check that arrays of different lengths are correctly converted to
 // strings.
-TEST(selftest, toString_float32) {
+TYPED_TEST(SelfTest, toString) {
   {
     // length 3
     const int len = 3;
-    float values[len] = {4, 3.14, -9};
-
+    TypeParam values[len] = {4, 34, 9};
     PyArrayObject *arr = toArray(len, values);
-
-    EXPECT_EQ("[4, 3.14, -9]", toString(values[0], arr));
-
+    EXPECT_EQ("[4, 34, 9]", toString(values[0], arr));
     Py_DECREF(arr);
   }
   {
     // length 0
     const int len = 0;
-    float values[1] = {49};
-
+    TypeParam values[1] = {49};
     PyArrayObject *arr = toArray(len, values);
-
     EXPECT_EQ("[]", toString(values[0], arr));
-
     Py_DECREF(arr);
   }
 }
 
-// Check that float32 array of different lengths are correctly converted to
-// strings.
-TEST(selftest, toString_uint64) {
-  {
-    // length 3
-    const int len = 3;
-    uint64_t values[len] = {4, 4234200, 9};
-
-    PyArrayObject *arr = toArray(len, values);
-
-    EXPECT_EQ("[4, 4234200, 9]", toString(values[0], arr));
-
-    Py_DECREF(arr);
-  }
-  {
-    // length 0
-    const int len = 0;
-    uint64_t values[1] = {49};
-
-    PyArrayObject *arr = toArray(len, values);
-
-    EXPECT_EQ("[]", toString(values[0], arr));
-
-    Py_DECREF(arr);
-  }
-}
-
-// Check that float32 array of different lengths are correctly converted to
-// strings.
-TEST(selftest, toString_int16) {
-  {
-    // length 3
-    const int len = 3;
-    int16_t values[len] = {4, 30342, 9};
-
-    PyArrayObject *arr = toArray(len, values);
-
-    EXPECT_EQ("[4, 30342, 9]", toString(values[0], arr));
-
-    Py_DECREF(arr);
-  }
-  {
-    // length 0
-    const int len = 0;
-    int16_t values[1] = {49};
-
-    PyArrayObject *arr = toArray(len, values);
-
-    EXPECT_EQ("[]", toString(values[0], arr));
-
-    Py_DECREF(arr);
-  }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Basic tests
@@ -352,4 +239,3 @@ int main(int argc, char **argv) {
 
     return RUN_ALL_TESTS();
 }
-
