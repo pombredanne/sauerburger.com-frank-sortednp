@@ -16,19 +16,19 @@ typedef ::testing::Types<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t,
 // Helper method which returns the numpy typenum associated with the type of
 // the argument. This method should be used to determined the appropriate
 // data type when creating numpy arrays.
-template <class T>
-int getNpyType(T type);
+template <typename T>
+int getNpyType();
 
-int getNpyType(uint8_t type)  { return NPY_UINT8;   }
-int getNpyType(uint16_t type) { return NPY_UINT16;  }
-int getNpyType(uint32_t type) { return NPY_UINT32;  }
-int getNpyType(uint64_t type) { return NPY_UINT64;  }
-int getNpyType(int8_t type)   { return NPY_INT8;    }
-int getNpyType(int16_t type)  { return NPY_INT16;   }
-int getNpyType(int32_t type)  { return NPY_INT32;   }
-int getNpyType(int64_t type)  { return NPY_INT64;   }
-int getNpyType(float type)    { return NPY_FLOAT32; }
-int getNpyType(double type)   { return NPY_FLOAT64; }
+template<> int getNpyType<uint8_t>()  { return NPY_UINT8;   }
+template<> int getNpyType<uint16_t>() { return NPY_UINT16;  }
+template<> int getNpyType<uint32_t>() { return NPY_UINT32;  }
+template<> int getNpyType<uint64_t>() { return NPY_UINT64;  }
+template<> int getNpyType<int8_t>()   { return NPY_INT8;    }
+template<> int getNpyType<int16_t>()  { return NPY_INT16;   }
+template<> int getNpyType<int32_t>()  { return NPY_INT32;   }
+template<> int getNpyType<int64_t>()  { return NPY_INT64;   }
+template<> int getNpyType<float>()    { return NPY_FLOAT32; }
+template<> int getNpyType<double>()   { return NPY_FLOAT64; }
 
 // Helper method to easily convert a c-style array to a numpy array. The
 // function creates a new numpy array of the given length and fills it with
@@ -39,7 +39,7 @@ template <class T>
 PyArrayObject *toArray(int len, T *values) {
     // Create new array
     npy_intp dims[1] = {len};
-    int type = getNpyType(values[0]);
+    int type = getNpyType<T>();
     PyObject *obj = PyArray_SimpleNew(1, dims,  type);
     PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OF(obj, NPY_ARRAY_CARRAY_RO);
 
@@ -55,24 +55,27 @@ PyArrayObject *toArray(int len, T *values) {
 // template type.
 const char INT_FORMAT[] = "%d";
 const char FLOAT_FORMAT[] = "%g";
-template <class T>
-const char *getFormatString(T type) { return INT_FORMAT; }
+template <typename T>
+const char *getFormatString() { return INT_FORMAT; }
 
-const char *getFormatString(float type) { return FLOAT_FORMAT; }
-const char *getFormatString(double type) { return FLOAT_FORMAT; }
+template <>
+const char *getFormatString<float>() { return FLOAT_FORMAT; }
+
+template <>
+const char *getFormatString<double>() { return FLOAT_FORMAT; }
 
 // Return the array as a string, similar to pythons list representation, the
 // template type is used to access to array items and to determine the format
 // string.
 template <class T>
-std::string toString(T type, PyArrayObject* array) {
+std::string toString(PyArrayObject* array) {
     std::string out = "[";
     npy_intp len = PyArray_DIMS(array)[0];
     char buffer[255];
     const char *format;
 
     for (npy_intp i = 0; i < len; i++) {
-        format = getFormatString(type);
+        format = getFormatString<T>();
         sprintf(buffer, format, *(T*) PyArray_GETPTR1(array, i));
         out.append(buffer);
 
@@ -89,7 +92,7 @@ std::string toString(T type, PyArrayObject* array) {
 // Test of helper functions, i.e. self-test
 
 
-template <typename T>
+template <class T>
 class SelfTest : public ::testing::Test { };
 
 TYPED_TEST_CASE(SelfTest, SupportedTypes);
@@ -97,19 +100,12 @@ TYPED_TEST_CASE(SelfTest, SupportedTypes);
 // Test the helper method, whether it indeed returns the correct numpy typenum
 // for a few selected types.
 TEST(SelfTest, getNpyType) {
-    uint8_t ui8 = 0;
-    int16_t i16 = 0;
-    uint32_t ui32 = 0;
-    int64_t i64 = 0;
-    float f32 = 0;
-    double f64 = 0;
-
-    EXPECT_EQ(getNpyType(ui8), NPY_UINT8);
-    EXPECT_EQ(getNpyType(i16), NPY_INT16);
-    EXPECT_EQ(getNpyType(ui32), NPY_UINT32);
-    EXPECT_EQ(getNpyType(i64), NPY_INT64);
-    EXPECT_EQ(getNpyType(f32), NPY_FLOAT32);
-    EXPECT_EQ(getNpyType(f64), NPY_FLOAT64);
+    EXPECT_EQ(getNpyType<uint8_t>(), NPY_UINT8);
+    EXPECT_EQ(getNpyType<int16_t>(), NPY_INT16);
+    EXPECT_EQ(getNpyType<uint32_t>(), NPY_UINT32);
+    EXPECT_EQ(getNpyType<int64_t>(), NPY_INT64);
+    EXPECT_EQ(getNpyType<float>(), NPY_FLOAT32);
+    EXPECT_EQ(getNpyType<double>(), NPY_FLOAT64);
 }
 
 // Check that the helper function toArray returns the correct arrays from a
@@ -146,30 +142,23 @@ TYPED_TEST(SelfTest, toArray) {
 // type.
 TEST(SelfTest, getFormatString) {
     const char *format;
-
-    uint8_t ui8 = 0;
-    int16_t i16 = 0;
-    uint32_t ui32 = 0;
-    int64_t i64 = 0;
-    float f32 = 0;
-    double f64 = 0;
     
-    format = getFormatString(ui8);
+    format = getFormatString<uint8_t>();
     EXPECT_STREQ("%d", format);
 
-    format = getFormatString(i16);
+    format = getFormatString<int16_t>();
     EXPECT_STREQ("%d", format);
 
-    format = getFormatString(ui32);
+    format = getFormatString<uint32_t>();
     EXPECT_STREQ("%d", format);
 
-    format = getFormatString(i64);
+    format = getFormatString<int64_t>();
     EXPECT_STREQ("%d", format);
 
-    format = getFormatString(f32);
+    format = getFormatString<float>();
     EXPECT_STREQ("%g", format);
 
-    format = getFormatString(f64);
+    format = getFormatString<double>();
     EXPECT_STREQ("%g", format);
 
 }
@@ -182,7 +171,7 @@ TYPED_TEST(SelfTest, toString) {
     const int len = 3;
     TypeParam values[len] = {4, 34, 9};
     PyArrayObject *arr = toArray(len, values);
-    EXPECT_EQ("[4, 34, 9]", toString(values[0], arr));
+    EXPECT_EQ("[4, 34, 9]", toString<TypeParam>(arr));
     Py_DECREF(arr);
   }
   {
@@ -190,7 +179,7 @@ TYPED_TEST(SelfTest, toString) {
     const int len = 0;
     TypeParam values[1] = {49};
     PyArrayObject *arr = toArray(len, values);
-    EXPECT_EQ("[]", toString(values[0], arr));
+    EXPECT_EQ("[]", toString<TypeParam>(arr));
     Py_DECREF(arr);
   }
 }

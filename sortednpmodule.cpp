@@ -96,8 +96,8 @@ void simple_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
  * method returns the pointer to the newly created output array. The first
  * parameter is used to call the templated function.
  */
-template <class T>
-PyObject* intersect(T template_type, PyArrayObject *a_array, PyArrayObject *b_array) {
+template <typename T>
+PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
     // Since the size of the intersection array can not be known in advance we
     // need to create an array of at least the size of the smaller array.
     npy_intp len_a = PyArray_DIMS(a_array)[0];
@@ -220,49 +220,37 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
 
     PyObject* out;
 
-    // Use the dummy variables to call the typed intersect method.
-    int8_t dtype_int8 = 0;
-    int16_t dtype_int16 = 0;
-    int32_t dtype_int32 = 0;
-    int64_t dtype_int64 = 0;
-    uint8_t dtype_uint8 = 0;
-    uint16_t dtype_uint16 = 0;
-    uint32_t dtype_uint32 = 0;
-    uint64_t dtype_uint64 = 0;
-    float dtype_float32 = 0;
-    double dtype_float64 = 0;
-
     // Differentiate between different data types.
     switch (PyArray_TYPE(a_array)) {
         case NPY_INT8:
-          out = intersect(dtype_int8, a_array, b_array);
+          out = intersect<int8_t>(a_array, b_array);
           break;
         case NPY_INT16:
-          out = intersect(dtype_int16, a_array, b_array);
+          out = intersect<int16_t>(a_array, b_array);
           break;
         case NPY_INT32:
-          out = intersect(dtype_int32, a_array, b_array);
+          out = intersect<int32_t>(a_array, b_array);
           break;
         case NPY_INT64:
-          out = intersect(dtype_int64, a_array, b_array);
+          out = intersect<int64_t>(a_array, b_array);
           break;
         case NPY_UINT8:
-          out = intersect(dtype_uint8, a_array, b_array);
+          out = intersect<uint8_t>(a_array, b_array);
           break;
         case NPY_UINT16:
-          out = intersect(dtype_uint16, a_array, b_array);
+          out = intersect<uint16_t>(a_array, b_array);
           break;
         case NPY_UINT32:
-          out = intersect(dtype_uint32, a_array, b_array);
+          out = intersect<uint32_t>(a_array, b_array);
           break;
         case NPY_UINT64:
-          out = intersect(dtype_uint64, a_array, b_array);
+          out = intersect<uint64_t>(a_array, b_array);
           break;
         case NPY_FLOAT32:
-          out = intersect(dtype_float32, a_array, b_array);
+          out = intersect<float>(a_array, b_array);
           break;
         case NPY_FLOAT64:
-          out = intersect(dtype_float64, a_array, b_array);
+          out = intersect<double>(a_array, b_array);
           break;
         default:
           PyErr_SetString(PyExc_ValueError, "Data type not supported.");
@@ -281,8 +269,8 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
  * method returns the pointer to the newly created output array. The first
  * parameter is used to call the templated function.
  */
-template <class T>
-PyObject* merge(T template_type, PyArrayObject *a_array, PyArrayObject *b_array) {
+template <typename T>
+PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array) {
     // Since the size of the merged array can not be known in advance we
     // need to create an array of at least the size of the concatenation of both
     // arrays.
@@ -409,49 +397,37 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
 
     PyObject* out;
 
-    // Use the dummy variables to call the typed merge method.
-    int8_t dtype_int8 = 0;
-    int16_t dtype_int16 = 0;
-    int32_t dtype_int32 = 0;
-    int64_t dtype_int64 = 0;
-    uint8_t dtype_uint8 = 0;
-    uint16_t dtype_uint16 = 0;
-    uint32_t dtype_uint32 = 0;
-    uint64_t dtype_uint64 = 0;
-    float dtype_float32 = 0;
-    double dtype_float64 = 0;
-
     // Differentiate between different data types.
     switch (PyArray_TYPE(a_array)) {
         case NPY_INT8:
-          out = merge(dtype_int8, a_array, b_array);
+          out = merge<int8_t>(a_array, b_array);
           break;
         case NPY_INT16:
-          out = merge(dtype_int16, a_array, b_array);
+          out = merge<int16_t>(a_array, b_array);
           break;
         case NPY_INT32:
-          out = merge(dtype_int32, a_array, b_array);
+          out = merge<int32_t>(a_array, b_array);
           break;
         case NPY_INT64:
-          out = merge(dtype_int64, a_array, b_array);
+          out = merge<int64_t>(a_array, b_array);
           break;
         case NPY_UINT8:
-          out = merge(dtype_uint8, a_array, b_array);
+          out = merge<uint8_t>(a_array, b_array);
           break;
         case NPY_UINT16:
-          out = merge(dtype_uint16, a_array, b_array);
+          out = merge<uint16_t>(a_array, b_array);
           break;
         case NPY_UINT32:
-          out = merge(dtype_uint32, a_array, b_array);
+          out = merge<uint32_t>(a_array, b_array);
           break;
         case NPY_UINT64:
-          out = merge(dtype_uint64, a_array, b_array);
+          out = merge<uint64_t>(a_array, b_array);
           break;
         case NPY_FLOAT32:
-          out = merge(dtype_float32, a_array, b_array);
+          out = merge<float>(a_array, b_array);
           break;
         case NPY_FLOAT64:
-          out = merge(dtype_float64, a_array, b_array);
+          out = merge<double>(a_array, b_array);
           break;
         default:
           PyErr_SetString(PyExc_ValueError, "Data type not supported.");
