@@ -19,7 +19,7 @@ cxx-based-test: cxxtest
 cxxtest: cxxtest.o sortednpmodule.o
 	$(CXX) $^ `$(PYTHON)-config --ldflags` -lgtest -o $@
 
-%.o: %.cpp $(wildcard %.h)
+%.o: %.cpp $(wildcard *.h)
 	$(CXX) -c $< $(NUMPY) `$(PYTHON)-config --cflags` $(GTEST) $(FLAGS) -o $@
 	
 clean:

@@ -94,7 +94,6 @@ std::string toString(PyArrayObject* array) {
 
 template <class T>
 class SelfTest : public ::testing::Test { };
-
 TYPED_TEST_CASE(SelfTest, SupportedTypes);
 
 // Test the helper method, whether it indeed returns the correct numpy typenum
@@ -216,8 +215,413 @@ TEST(basic, create_numpy) {
     Py_DECREF(obj);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Search algorithm tests
+
+template <class T>
+class SearchTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+    this->i = 0;
+    this->len = 5;
+    this->values = new T[this->len];
+    this->values[0] = 3;
+    this->values[1] = 5;
+    this->values[2] = 7;
+    this->values[3] = 13;
+    this->values[4] = 21;
+  }
+  virtual void TearDown() {
+    delete[] this->values;
+  }
+
+  npy_intp i;
+  npy_intp len;
+  T *values;
+};
+TYPED_TEST_CASE(SearchTest, SupportedTypes);
+
+////////////////////////////////////////
+// simple search 
+
+TYPED_TEST(SearchTest, simple_search__first) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    this->i = 0;
+    bool ret = simple_search((TypeParam) 3, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i++;
+    ret = simple_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, simple_search__middle) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = simple_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    this->i = 0;
+    ret = simple_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 0;
+    ret = simple_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = simple_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    this->i = 1;
+    ret = simple_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 1;
+    ret = simple_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, simple_search__in_between) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = simple_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = simple_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, simple_search__last) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = simple_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = simple_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, simple_search__too_large) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = simple_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = simple_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, simple_search__too_small) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = simple_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = simple_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    Py_DECREF(arr);
+}
 
 
+////////////////////////////////////////
+// binary search 
+
+TYPED_TEST(SearchTest, binary_search__first) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    this->i = 0;
+    bool ret = binary_search((TypeParam) 3, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i++;
+    ret = binary_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, binary_search__middle) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = binary_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    this->i = 0;
+    ret = binary_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 0;
+    ret = binary_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = binary_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    this->i = 1;
+    ret = binary_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 1;
+    ret = binary_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, binary_search__in_between) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = binary_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = binary_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, binary_search__last) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = binary_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = binary_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, binary_search__too_large) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = binary_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = binary_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, binary_search__too_small) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = binary_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = binary_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    Py_DECREF(arr);
+}
+
+////////////////////////////////////////
+// galloping search 
+
+TYPED_TEST(SearchTest, galloping_search__first) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    this->i = 0;
+    bool ret = galloping_search((TypeParam) 3, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i++;
+    ret = galloping_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, galloping_search__middle) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = galloping_search((TypeParam) 5, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(1, this->i);
+
+    this->i = 0;
+    ret = galloping_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 0;
+    ret = galloping_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = galloping_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    this->i = 1;
+    ret = galloping_search((TypeParam) 7, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    this->i = 1;
+    ret = galloping_search((TypeParam) 13, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, galloping_search__in_between) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = galloping_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = galloping_search((TypeParam) 10, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(3, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, galloping_search__last) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = galloping_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 1;
+    ret = galloping_search((TypeParam) 21, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, galloping_search__too_large) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = galloping_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = galloping_search((TypeParam) 100, arr, this->i, this->len);
+    EXPECT_TRUE(ret);
+    ASSERT_EQ(4, this->i);
+
+    Py_DECREF(arr);
+}
+
+TYPED_TEST(SearchTest, galloping_search__too_small) {
+    PyArrayObject *arr = toArray(this->len, this->values);
+
+    // no offset
+    bool ret = galloping_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(0, this->i);
+
+    // with offset
+    this->i = 2;
+    ret = galloping_search((TypeParam) 0, arr, this->i, this->len);
+    EXPECT_FALSE(ret);
+    ASSERT_EQ(2, this->i);
+
+    Py_DECREF(arr);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Main function. Initialize Google Test, Python and numpy. Finally run all
 // test cases.
 int main(int argc, char **argv) {
