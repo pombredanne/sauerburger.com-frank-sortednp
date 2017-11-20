@@ -1,6 +1,8 @@
+// Copyright (C) 2016, Frank Sauerburger
+// Sortednp module
 
-#ifndef SORTEDNPMODULE_H
-#define SORTEDNPMODULE_H
+#ifndef SORTEDNPMODULE_H_
+#define SORTEDNPMODULE_H_
 
 #include <Python.h>
 
@@ -23,23 +25,24 @@
  * value.
  */
 template <class T>
-bool simple_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
-    for (; i < len; i++) {
-        T value = *((T*) PyArray_GETPTR1(array, i));
+bool simple_search(T target, PyArrayObject *array, npy_intp *i,
+    const npy_intp &len) {
+  for (; *i < len; (*i)++) {
+    T value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
 
-        if (target < value) {
-            // Search value is too small
-            return false;
-        } else if (value == target) {
-            // Value found
-            return false;
-        }
+    if (target < value) {
+      // Search value is too small
+      return false;
+    } else if (value == target) {
+      // Value found
+      return false;
     }
+  }
 
-    i--;  // Pointer moved beyond limits of array. Move it back.
+  (*i)--;  // Pointer moved beyond limits of array. Move it back.
 
-    // Reached the end of array without finding the value
-    return true;
+  // Reached the end of array without finding the value
+  return true;
 }
 
 /**
@@ -50,36 +53,37 @@ bool simple_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
  * the two half until the target value is found.
  */
 template <class T>
-bool binary_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
-    T value = *((T*) PyArray_GETPTR1(array, i));
+bool binary_search(T target, PyArrayObject *array, npy_intp *i,
+    const npy_intp &len) {
+  T value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
 
-    // If already at correct location or beyond
-    if (target <= value) {
-      return false;
-    }
-
-    npy_intp i_right = len - 1;  // is always GREATER OR EQUAL
-    npy_intp i_left = i;  // is always LESS than value
-
-    T right = *((T*) PyArray_GETPTR1(array, i_right));
-    if (right < target) {
-      i = i_right; 
-      return true;  // indicate target value too large
-    }
-
-    while (i_left + 1 < i_right) {
-        i = (i_right + i_left) / 2;
-        value = *((T*) PyArray_GETPTR1(array, i));
-
-        if (target <= value) {
-          i_right = i;
-        } else {
-          i_left = i;
-        }
-    }
-
-    i = i_right;
+  // If already at correct location or beyond
+  if (target <= value) {
     return false;
+  }
+
+  npy_intp i_right = len - 1;  // is always GREATER OR EQUAL
+  npy_intp i_left = *i;  // is always LESS than value
+
+  T right = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, i_right)));
+  if (right < target) {
+    *i = i_right;
+    return true;  // indicate target value too large
+  }
+
+  while (i_left + 1 < i_right) {
+    *i = (i_right + i_left) / 2;
+    value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
+
+    if (target <= value) {
+      i_right = *i;
+    } else {
+      i_left = *i;
+    }
+  }
+
+  *i = i_right;
+  return false;
 }
 
 /**
@@ -90,37 +94,38 @@ bool binary_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
  * preform a binary search for all values encloses by the last step.
  */
 template <class T>
-bool galloping_search(T target, PyArrayObject *array, npy_intp &i, npy_intp &len) {
-    T value = *((T*) PyArray_GETPTR1(array, i));
+bool galloping_search(T target, PyArrayObject *array, npy_intp *i,
+    const npy_intp &len) {
+  T value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
 
-    // If already at correct location or beyond
-    if (target <= value) {
-      return false;
+  // If already at correct location or beyond
+  if (target <= value) {
+    return false;
+  }
+
+  npy_intp delta = 1;
+  npy_intp i_prev = *i;
+
+  while (value < target) {
+    i_prev = *i;
+    *i += delta;
+    if (len <= *i) {
+      // Gallop jump reached end of array.
+      *i = len - 1;
+      value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
+      break;
     }
 
-    npy_intp delta = 1;
-    npy_intp i_prev = i;
-    
-    while (value < target) {
-        i_prev = i;
-        i += delta;
-        if (len <= i) {
-            // Gallop jump reached end of array.
-            i = len - 1;
-            value = *((T*) PyArray_GETPTR1(array, i));
-            break;
-        }
+    value = *(reinterpret_cast<T*>(PyArray_GETPTR1(array, *i)));
+    // Increase step size.
+    delta *= 2;
+  }
 
-        value = *((T*) PyArray_GETPTR1(array, i));
-        // Increase step size.
-        delta *= 2;
-    }
+  npy_intp higher = *i;
+  higher++;  // Convert pointer position to length.
+  *i = i_prev;  // This is the lower boundary and the active counter.
 
-    npy_intp higher = i;
-    higher++;  // Convert pointer position to length.
-    i = i_prev;  // This is the lower boundary and the active counter.
-
-    return binary_search(target, array, i, higher);
+  return binary_search(target, array, i, higher);
 }
 
 
@@ -135,4 +140,4 @@ PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array);
 PyObject *sortednp_merge(PyObject *self, PyObject *args);
 
 
-#endif  // SORTEDNPMODULE_H
+#endif  // SORTEDNPMODULE_H_

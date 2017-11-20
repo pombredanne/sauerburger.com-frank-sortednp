@@ -1,14 +1,21 @@
+"""
+Sortednp (sorted numpy) is a python package which provides methods to perform
+efficient set operations on sorted numpy arrays. This includes intersecting
+and merging sorted numpy arrays. The returned intersections and unions are
+also sorted.
+"""
+
 
 from _sortednp import merge, intersect
 
-def resolve(o):
+def resolve(obj):
     """
     Helper function.
 
     Check whether the given object is callable. If yes, return its return
     value, otherwise return the object itself.
     """
-    return o() if callable(o) else o
+    return obj() if callable(obj) else obj
 
 def kway_merge(*arrays, assume_sorted=True):
     """
@@ -26,20 +33,20 @@ def kway_merge(*arrays, assume_sorted=True):
     not the most performant implementation. Use the module heapq for more
     efficient ways to merge sorted arrays.
     """
-    if len(arrays) == 0:
+    if not arrays:
         raise TypeError("Merge expects at least one array.")
 
     arrays = list(arrays)
-    m = arrays.pop()
-    m = resolve(m)
+    merge_result = arrays.pop()
+    merge_result = resolve(merge_result)
     if not assume_sorted:
-        m.sort()
-    for a in arrays:
-        a = resolve(a)
+        merge_result.sort()
+    for array in arrays:
+        array = resolve(array)
         if not assume_sorted:
-            a.sort()
-        m = merge(m, a)
-    return m
+            array.sort()
+        merge_result = merge(merge_result, array)
+    return merge_result
 
 def kway_intersect(*arrays, assume_sorted=True):
     """
@@ -55,10 +62,10 @@ def kway_intersect(*arrays, assume_sorted=True):
     arrays in memory at the same time..
 
     Note on the performance: The function intersects the arrays one-by-one.
-    This is not the most performant implementation. 
+    This is not the most performant implementation.
     """
 
-    if len(arrays) == 0:
+    if not arrays:
         raise TypeError("Merge expects at least one array.")
 
     # start with smallest non-callable
@@ -67,13 +74,13 @@ def kway_intersect(*arrays, assume_sorted=True):
     len_array = sorted(len_array, key=lambda x: x[0])
     arrays = [a for l, a in len_array]
 
-    i = arrays.pop()
-    i = resolve(i)
+    intersect_result = arrays.pop()
+    intersect_result = resolve(intersect_result)
     if not assume_sorted:
-        i.sort()
-    for a in arrays:
-        a = resolve(a)
+        intersect_result.sort()
+    for array in arrays:
+        array = resolve(array)
         if not assume_sorted:
-            a.sort()
-        i = intersect(i, a)
-    return i
+            array.sort()
+        intersect_result = intersect(intersect_result, array)
+    return intersect_result

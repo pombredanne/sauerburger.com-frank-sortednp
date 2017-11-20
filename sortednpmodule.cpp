@@ -1,3 +1,5 @@
+// Copyright (C) 2016, Frank Sauerburger
+// C++ implementation of the sortednp module
 
 #include "sortednpmodule.h"
 
@@ -13,65 +15,65 @@
  */
 template <typename T>
 PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
-    // Since the size of the intersection array can not be known in advance we
-    // need to create an array of at least the size of the smaller array.
-    npy_intp len_a = PyArray_DIMS(a_array)[0];
-    npy_intp len_b = PyArray_DIMS(b_array)[0];
-    npy_intp new_dim[1] = {len_a < len_b ? len_a : len_b};
+  // Since the size of the intersection array can not be known in advance we
+  // need to create an array of at least the size of the smaller array.
+  npy_intp len_a = PyArray_DIMS(a_array)[0];
+  npy_intp len_b = PyArray_DIMS(b_array)[0];
+  npy_intp new_dim[1] = {len_a < len_b ? len_a : len_b};
 
-    // Creating the new array sets the reference counter to 1 and passes the
-    // ownership of the returned reference to the caller. The method steals the
-    // type descriptor, which is why we have to increment its count before
-    // calling the method.
-    PyArray_Descr* type = PyArray_DESCR(a_array);
-    Py_INCREF(type);
-    PyObject *out;
-    out = PyArray_SimpleNewFromDescr(1, new_dim, type);
-    if (out == NULL) {
-        // Probably a memory error occurred.
-        return NULL;
-    }
-    PyArrayObject *out_array = (PyArrayObject*) out;
+  // Creating the new array sets the reference counter to 1 and passes the
+  // ownership of the returned reference to the caller. The method steals the
+  // type descriptor, which is why we have to increment its count before
+  // calling the method.
+  PyArray_Descr* type = PyArray_DESCR(a_array);
+  Py_INCREF(type);
+  PyObject *out;
+  out = PyArray_SimpleNewFromDescr(1, new_dim, type);
+  if (out == NULL) {
+    // Probably a memory error occurred.
+    return NULL;
+  }
+  PyArrayObject *out_array = reinterpret_cast<PyArrayObject*>(out);
 
-    npy_intp i_a = 0;
-    npy_intp i_b = 0;
-    npy_intp i_o = 0;
-    T v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-    T v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
+  npy_intp i_a = 0;
+  npy_intp i_b = 0;
+  npy_intp i_o = 0;
+  T v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+  T v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
 
-    // Actual computation of the intersection.
-    while (i_a < len_a && i_b < len_b) {
-        if (v_a < v_b) {
-            bool exit = SEARCH_METHOD(v_b, a_array, i_a, len_a);
-            v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-            if (exit) { break; }
-        } else if (v_b < v_a) {
-            bool exit = SEARCH_METHOD(v_a, b_array, i_b, len_b);
-            v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
-            if (exit) { break; }
-        }
-
-        if (v_a == v_b) {
-            T *t = (T*) PyArray_GETPTR1(out_array, i_o);
-            *t = v_a;
-
-            i_o++;
-            i_a++;
-            i_b++;
-
-            v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-            v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
-        }
+  // Actual computation of the intersection.
+  while (i_a < len_a && i_b < len_b) {
+    if (v_a < v_b) {
+      bool exit = SEARCH_METHOD(v_b, a_array, &i_a, len_a);
+      v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+      if (exit) { break; }
+    } else if (v_b < v_a) {
+      bool exit = SEARCH_METHOD(v_a, b_array, &i_b, len_b);
+      v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
+      if (exit) { break; }
     }
 
-    // Resize the array after intersect operation.
-    new_dim[0] = i_o;
-    PyArray_Dims dims;
-    dims.ptr = new_dim;
-    dims.len = 1;
-    PyArray_Resize(out_array, &dims, 0, NPY_CORDER);
+    if (v_a == v_b) {
+      T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
+      *t = v_a;
 
-    return out;
+      i_o++;
+      i_a++;
+      i_b++;
+
+      v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+      v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
+    }
+  }
+
+  // Resize the array after intersect operation.
+  new_dim[0] = i_o;
+  PyArray_Dims dims;
+  dims.ptr = new_dim;
+  dims.len = 1;
+  PyArray_Resize(out_array, &dims, 0, NPY_CORDER);
+
+  return out;
 }
 
 /*
@@ -82,101 +84,103 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
  * passed to the caller.
  */
 PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
-    // References to the arguments are borrowed. Counter should not be
-    // incremented since input arrays are not stored.
+  // References to the arguments are borrowed. Counter should not be
+  // incremented since input arrays are not stored.
 
-    PyObject *a, *b;
+  PyObject *a, *b;
 
-    // PyArg_ParseTuple returns borrowed references. This is fine, the input
-    // arrays are not stored.
-    if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b)) {
-        // Reference counters have not been changed.
-        return NULL;
-    }
+  // PyArg_ParseTuple returns borrowed references. This is fine, the input
+  // arrays are not stored.
+  if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b)) {
+    // Reference counters have not been changed.
+    return NULL;
+  }
 
-    // PyArray_FROM_OF steals a reference according to 
-    // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
-    // means that the reference count is decremented in the end. However the
-    // method also returns a reference. It is not clear , whether ew own the
-    // reference or not.
-    // 
-    // A quick investigation showed that Py_REFCNT(a) returns 2 before the
-    // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
-    // a new reference to the array for use and passes ownership of the
-    // references to use. To keep the reference count constant we have to
-    // decrement it.
-    a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
-    b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
+  // PyArray_FROM_OF steals a reference according to
+  // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
+  // means that the reference count is decremented in the end. However the
+  // method also returns a reference. It is not clear , whether ew own the
+  // reference or not.
+  //
+  // A quick investigation showed that Py_REFCNT(a) returns 2 before the
+  // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
+  // a new reference to the array for use and passes ownership of the
+  // references to use. To keep the reference count constant we have to
+  // decrement it.
+  a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
+  b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
-    // Decrement reference counter of the non-null array, see above comment
-    // block.
-    Py_XDECREF(a);
-    Py_XDECREF(b);
+  // Decrement reference counter of the non-null array, see above comment
+  // block.
+  Py_XDECREF(a);
+  Py_XDECREF(b);
 
-    if (a == NULL || b == NULL) {
-      // Reference counter of input arrays have been fixed. It is safe to exit.
-        return NULL;
-    }
+  if (a == NULL || b == NULL) {
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
 
-    // Some methods need a PyObject* other nee a PyArrayObject*.
-    PyArrayObject *a_array = (PyArrayObject*) a;
-    PyArrayObject *b_array = (PyArrayObject*) b;
+  // Some methods need a PyObject* other nee a PyArrayObject*.
+  PyArrayObject *a_array = reinterpret_cast<PyArrayObject*>(a);
+  PyArrayObject *b_array = reinterpret_cast<PyArrayObject*>(b);
 
-    if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
-      PyErr_SetString(PyExc_ValueError, "Arguments can not be multi-dimensional.");
+  if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
+    PyErr_SetString(PyExc_ValueError,
+      "Arguments can not be multi-dimensional.");
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
+
+  if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
+    PyErr_SetString(PyExc_ValueError,
+      "Arguments must have the same data type.");
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
+
+
+  PyObject* out;
+
+  // Differentiate between different data types.
+  switch (PyArray_TYPE(a_array)) {
+    case NPY_INT8:
+      out = intersect<int8_t>(a_array, b_array);
+      break;
+    case NPY_INT16:
+      out = intersect<int16_t>(a_array, b_array);
+      break;
+    case NPY_INT32:
+      out = intersect<int32_t>(a_array, b_array);
+      break;
+    case NPY_INT64:
+      out = intersect<int64_t>(a_array, b_array);
+      break;
+    case NPY_UINT8:
+      out = intersect<uint8_t>(a_array, b_array);
+      break;
+    case NPY_UINT16:
+      out = intersect<uint16_t>(a_array, b_array);
+      break;
+    case NPY_UINT32:
+      out = intersect<uint32_t>(a_array, b_array);
+      break;
+    case NPY_UINT64:
+      out = intersect<uint64_t>(a_array, b_array);
+      break;
+    case NPY_FLOAT32:
+      out = intersect<float>(a_array, b_array);
+      break;
+    case NPY_FLOAT64:
+      out = intersect<double>(a_array, b_array);
+      break;
+    default:
+      PyErr_SetString(PyExc_ValueError, "Data type not supported.");
       // Reference counter of input arrays have been fixed. It is safe to exit.
       return NULL;
-    }
+  }
 
-    if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
-      PyErr_SetString(PyExc_ValueError, "Arguments must have the same data type.");
-      // Reference counter of input arrays have been fixed. It is safe to exit.
-      return NULL;
-    }
-
-
-    PyObject* out;
-
-    // Differentiate between different data types.
-    switch (PyArray_TYPE(a_array)) {
-        case NPY_INT8:
-          out = intersect<int8_t>(a_array, b_array);
-          break;
-        case NPY_INT16:
-          out = intersect<int16_t>(a_array, b_array);
-          break;
-        case NPY_INT32:
-          out = intersect<int32_t>(a_array, b_array);
-          break;
-        case NPY_INT64:
-          out = intersect<int64_t>(a_array, b_array);
-          break;
-        case NPY_UINT8:
-          out = intersect<uint8_t>(a_array, b_array);
-          break;
-        case NPY_UINT16:
-          out = intersect<uint16_t>(a_array, b_array);
-          break;
-        case NPY_UINT32:
-          out = intersect<uint32_t>(a_array, b_array);
-          break;
-        case NPY_UINT64:
-          out = intersect<uint64_t>(a_array, b_array);
-          break;
-        case NPY_FLOAT32:
-          out = intersect<float>(a_array, b_array);
-          break;
-        case NPY_FLOAT64:
-          out = intersect<double>(a_array, b_array);
-          break;
-        default:
-          PyErr_SetString(PyExc_ValueError, "Data type not supported.");
-          // Reference counter of input arrays have been fixed. It is safe to exit.
-          return NULL;
-    }
-
-    // Passes ownership of the returned reference to the  caller.
-    return out;
+  // Passes ownership of the returned reference to the  caller.
+  return out;
 }
 
 /**
@@ -188,68 +192,68 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
  */
 template <typename T>
 PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array) {
-    // Since the size of the merged array can not be known in advance we
-    // need to create an array of at least the size of the concatenation of both
-    // arrays.
-    npy_intp len_a = PyArray_DIMS(a_array)[0];
-    npy_intp len_b = PyArray_DIMS(b_array)[0];
-    npy_intp new_dim[1] = {len_a + len_b};
+  // Since the size of the merged array can not be known in advance we
+  // need to create an array of at least the size of the concatenation of both
+  // arrays.
+  npy_intp len_a = PyArray_DIMS(a_array)[0];
+  npy_intp len_b = PyArray_DIMS(b_array)[0];
+  npy_intp new_dim[1] = {len_a + len_b};
 
-    // Creating the new array sets the reference counter to 1 and passes the
-    // ownership of the returned reference to the caller. The method steals the
-    // type descriptor, which is why we have to increment its count before
-    // calling the method.
-    PyArray_Descr* type = PyArray_DESCR(a_array);
-    Py_INCREF(type);
-    PyObject *out;
-    out = PyArray_SimpleNewFromDescr(1, new_dim, type);
-    if (out == NULL) {
-        // Probably a memory error occurred.
-        return NULL;
+  // Creating the new array sets the reference counter to 1 and passes the
+  // ownership of the returned reference to the caller. The method steals the
+  // type descriptor, which is why we have to increment its count before
+  // calling the method.
+  PyArray_Descr* type = PyArray_DESCR(a_array);
+  Py_INCREF(type);
+  PyObject *out;
+  out = PyArray_SimpleNewFromDescr(1, new_dim, type);
+  if (out == NULL) {
+    // Probably a memory error occurred.
+    return NULL;
+  }
+  PyArrayObject* out_array = reinterpret_cast<PyArrayObject*>(out);
+
+  npy_intp i_a = 0;
+  npy_intp i_b = 0;
+  npy_intp i_o = 0;
+  T v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+  T v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
+
+  // Actually merging the arrays.
+  while (i_a < len_a && i_b < len_b) {
+    T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
+
+    if (v_a < v_b) {
+      *t = v_a;
+      i_a++;
+      i_o++;
+      v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+    } else {
+      *t = v_b;
+      i_b++;
+      i_o++;
+      v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
     }
-    PyArrayObject* out_array = (PyArrayObject*) out;
+  }
 
-    npy_intp i_a = 0;
-    npy_intp i_b = 0;
-    npy_intp i_o = 0;
-    T v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-    T v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
+  // If the end of one of the two arrays has been reached in the above loop,
+  // we need to copy all the elements left the array to the output.
+  while (i_a < len_a) {
+    T v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
+    T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
+    *t = v_a;
+    i_a++;
+    i_o++;
+  }
+  while (i_b < len_b) {
+    T v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
+    T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
+    *t = v_b;
+    i_b++;
+    i_o++;
+  }
 
-    // Actually merging the arrays.
-    while (i_a < len_a && i_b < len_b) {
-        T *t = (T*) PyArray_GETPTR1(out_array, i_o);
-
-        if (v_a < v_b) {
-            *t = v_a;
-            i_a++;
-            i_o++;
-            v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-        } else {
-            *t = v_b;
-            i_b++;
-            i_o++;
-            v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
-        }
-    }
-
-    // If the end of one of the two arrays has been reached in the above loop,
-    // we need to copy all the elements left the array to the output.
-    while (i_a < len_a) {
-        T v_a = *((T*) PyArray_GETPTR1(a_array, i_a));
-        T *t = (T*) PyArray_GETPTR1(out_array, i_o);
-        *t = v_a;
-        i_a++;
-        i_o++;
-    }
-    while (i_b < len_b) {
-        T v_b = *((T*) PyArray_GETPTR1(b_array, i_b));
-        T *t = (T*) PyArray_GETPTR1(out_array, i_o);
-        *t = v_b;
-        i_b++;
-        i_o++;
-    }
-
-    return out;
+  return out;
 }
 
 /*
@@ -260,119 +264,122 @@ PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array) {
  * passed to the caller.
  */
 PyObject *sortednp_merge(PyObject *self, PyObject *args) {
-    // References to the arguments are borrowed. Counter should not be
-    // incremented since input arrays are not stored.
+  // References to the arguments are borrowed. Counter should not be
+  // incremented since input arrays are not stored.
 
-    PyObject *a, *b;
+  PyObject *a, *b;
 
-    // PyArg_ParseTuple returns borrowed references. This is fine, the input
-    // arrays are not stored.
-    if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b))
-        // Reference counters have not been changed.
-        return NULL;
+  // PyArg_ParseTuple returns borrowed references. This is fine, the input
+  // arrays are not stored.
+  if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b))
+    // Reference counters have not been changed.
+    return NULL;
 
-    // PyArray_FROM_OF steals a reference according to 
-    // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
-    // means that the reference count is decremented in the end. However the
-    // method also returns a reference. It is not clear , whether ew own the
-    // reference or not.
-    // 
-    // A quick investigation showed that Py_REFCNT(a) returns 2 before the
-    // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
-    // a new reference to the array for use and passes ownership of the
-    // references to use. To keep the reference count constant we have to
-    // decrement it.
-    a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
-    b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
+  // PyArray_FROM_OF steals a reference according to
+  // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
+  // means that the reference count is decremented in the end. However the
+  // method also returns a reference. It is not clear , whether ew own the
+  // reference or not.
+  //
+  // A quick investigation showed that Py_REFCNT(a) returns 2 before the
+  // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
+  // a new reference to the array for use and passes ownership of the
+  // references to use. To keep the reference count constant we have to
+  // decrement it.
+  a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
+  b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
-    // Decrement reference counter of the non-null array, see above comment
-    // block.
-    Py_XDECREF(a);
-    Py_XDECREF(b);
+  // Decrement reference counter of the non-null array, see above comment
+  // block.
+  Py_XDECREF(a);
+  Py_XDECREF(b);
 
-    if (a == NULL || b == NULL) {
-      // Reference counter of input arrays have been fixed. It is safe to exit.
-        return NULL;
-    }
+  if (a == NULL || b == NULL) {
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
 
-    // Some methods need a PyObject* other nee a PyArrayObject*.
-    PyArrayObject *a_array = (PyArrayObject*) a;
-    PyArrayObject *b_array = (PyArrayObject*) b;
+  // Some methods need a PyObject* other nee a PyArrayObject*.
+  PyArrayObject *a_array = reinterpret_cast<PyArrayObject*>(a);
+  PyArrayObject *b_array = reinterpret_cast<PyArrayObject*>(b);
 
 
-    if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
-      PyErr_SetString(PyExc_ValueError, "Arguments can not be multi-dimensional.");
+  if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
+    PyErr_SetString(PyExc_ValueError,
+      "Arguments can not be multi-dimensional.");
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
+
+  if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
+    PyErr_SetString(PyExc_ValueError,
+      "Arguments must have the same data type.");
+    // Reference counter of input arrays have been fixed. It is safe to exit.
+    return NULL;
+  }
+
+  PyObject* out;
+
+  // Differentiate between different data types.
+  switch (PyArray_TYPE(a_array)) {
+    case NPY_INT8:
+      out = merge<int8_t>(a_array, b_array);
+      break;
+    case NPY_INT16:
+      out = merge<int16_t>(a_array, b_array);
+      break;
+    case NPY_INT32:
+      out = merge<int32_t>(a_array, b_array);
+      break;
+    case NPY_INT64:
+      out = merge<int64_t>(a_array, b_array);
+      break;
+    case NPY_UINT8:
+      out = merge<uint8_t>(a_array, b_array);
+      break;
+    case NPY_UINT16:
+      out = merge<uint16_t>(a_array, b_array);
+      break;
+    case NPY_UINT32:
+      out = merge<uint32_t>(a_array, b_array);
+      break;
+    case NPY_UINT64:
+      out = merge<uint64_t>(a_array, b_array);
+      break;
+    case NPY_FLOAT32:
+      out = merge<float>(a_array, b_array);
+      break;
+    case NPY_FLOAT64:
+      out = merge<double>(a_array, b_array);
+      break;
+    default:
+      PyErr_SetString(PyExc_ValueError, "Data type not supported.");
       // Reference counter of input arrays have been fixed. It is safe to exit.
       return NULL;
-    }
+  }
 
-    if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
-      PyErr_SetString(PyExc_ValueError, "Arguments must have the same data type.");
-      // Reference counter of input arrays have been fixed. It is safe to exit.
-      return NULL;
-    }
-
-    PyObject* out;
-
-    // Differentiate between different data types.
-    switch (PyArray_TYPE(a_array)) {
-        case NPY_INT8:
-          out = merge<int8_t>(a_array, b_array);
-          break;
-        case NPY_INT16:
-          out = merge<int16_t>(a_array, b_array);
-          break;
-        case NPY_INT32:
-          out = merge<int32_t>(a_array, b_array);
-          break;
-        case NPY_INT64:
-          out = merge<int64_t>(a_array, b_array);
-          break;
-        case NPY_UINT8:
-          out = merge<uint8_t>(a_array, b_array);
-          break;
-        case NPY_UINT16:
-          out = merge<uint16_t>(a_array, b_array);
-          break;
-        case NPY_UINT32:
-          out = merge<uint32_t>(a_array, b_array);
-          break;
-        case NPY_UINT64:
-          out = merge<uint64_t>(a_array, b_array);
-          break;
-        case NPY_FLOAT32:
-          out = merge<float>(a_array, b_array);
-          break;
-        case NPY_FLOAT64:
-          out = merge<double>(a_array, b_array);
-          break;
-        default:
-          PyErr_SetString(PyExc_ValueError, "Data type not supported.");
-          // Reference counter of input arrays have been fixed. It is safe to exit.
-          return NULL;
-    }
-
-    // Passes ownership of the returned reference to the  caller.
-    return out;
+  // Passes ownership of the returned reference to the  caller.
+  return out;
 }
 
 PyMethodDef SortedNpMethods[] = {
-    {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
-    {"intersect",  sortednp_intersect, METH_VARARGS, "Intersect two sorted numpy arrays."},
-    {NULL, NULL, 0, NULL}  // Sentinel
+  {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
+  {"intersect",  sortednp_intersect, METH_VARARGS,
+  "Intersect two sorted numpy arrays."},
+  {NULL, NULL, 0, NULL}  // Sentinel
 };
 
 // Define module itself.
 struct PyModuleDef sortednpmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_sortednp",  // Name of the module
-    NULL,  // Module docstring
-    -1,  // The module keeps state in global variables.
-    SortedNpMethods
+  PyModuleDef_HEAD_INIT,
+  "_sortednp",  // Name of the module
+  NULL,  // Module docstring
+  -1,  // The module keeps state in global variables.
+  SortedNpMethods
 };
 
 // Init method
 PyMODINIT_FUNC PyInit__sortednp(void) {
-    import_array();
-    return PyModule_Create(&sortednpmodule);
+  import_array();
+  return PyModule_Create(&sortednpmodule);
 }

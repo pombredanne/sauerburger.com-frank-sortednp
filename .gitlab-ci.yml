@@ -33,13 +33,13 @@ cxxtest:
 cpplint:
   stage: lint
   script:
-    - python3 cpplint.py *.cpp *.h
+    - python3 cpplint.py --filter=-build/include *.cpp *.h
 
 pylint:
   stage: lint
   script:
     - pip install pylint
-    - pylint sortednp
+    - pylint --disable=e0611 sortednp
 
 ################################################################################
 # Benchmark
