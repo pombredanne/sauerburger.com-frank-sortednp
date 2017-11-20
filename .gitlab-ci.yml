@@ -38,7 +38,7 @@ cpplint:
 pylint:
   stage: lint
   script:
-    - pip install pylint
+    - pip install pylint matplotlib numpy
     - make python-lint
 
 ################################################################################
