@@ -9,6 +9,14 @@ install:
 	$(PYTHON) setup.py install
 
 test: cxx-based-test python-based-test
+lint: cxx-lint python-lint
+
+cxx-lint: *.cpp *.h
+	python3 cpplint.py --filter=-build/include $^
+	
+	
+python-lint: setup.py benchmark.py sortednp/*.py
+	pylint --disable=e0611,e1101 $^
 
 python-based-test: sortednpmodule.cpp setup.py tests/*.py sortednp/*.py
 	$(PYTHON) setup.py test
@@ -24,6 +32,7 @@ cxxtest: cxxtest.o sortednpmodule.o
 	
 clean:
 	rm -f cxxtest.o cxxtest sortednpmodule.o
+
 
 install-gtest: googletest
 	cd googletest/googletest && \

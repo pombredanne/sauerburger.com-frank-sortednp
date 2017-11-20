@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 
+"""
+Run benchmarks to compare sortednp to numpy and show the result in plots. The
+benchmark tests both intersecting and merging. The benchmarks are executed
+twice, once taking the time to sort the arrays into account, and once using
+presorted arrays.
+"""
+
 import timeit
-import numpy as np
 from functools import reduce
 import argparse
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
+import numpy as np
 import sortednp as snp
+
+matplotlib.pyplot.switch_backend('Agg')
 
 np.random.seed(2853)
 
@@ -16,15 +23,23 @@ def np_kway_intersect(*arrays, assume_sorted):
     """
     Intersect all arrays iteratively.
     """
+    if assume_sorted:
+        # This infomraiton cannot be used
+        pass
+
     return reduce(np.intersect1d, arrays)
 
 def np_kway_merge(*arrays, assume_sorted):
     """
     Intersect all arrays iteratively.
     """
-    all = np.concatenate(arrays)
-    all.sort()
-    return all
+    if assume_sorted:
+        # This infomraiton cannot be used
+        pass
+
+    concatenation = np.concatenate(arrays)
+    concatenation.sort()
+    return concatenation
 
 def get_time(func, *args, **kwds):
     """
@@ -35,16 +50,15 @@ def get_time(func, *args, **kwds):
     func(*args, **kwds)
     return timeit.default_timer() - start_time
 
-def get_random_array(size, p=2):
+def get_random_array(size, sparseness=2):
     """
     Return an random array of the given size. The density paramter describes
     how likely it is to have duplicated items. Higher values produce more
     duplicates.
     """
-    pool = np.arange(0, size * p).astype('float64')
+    pool = np.arange(0, size * sparseness).astype('float64')
     np.random.shuffle(pool)
-    a = pool[:int(size)]
-    return a
+    return pool[:int(size)]
 
 def benchmark(algo, array_size, n_arrays, assume_sorted):
     """
@@ -62,7 +76,7 @@ def benchmark(algo, array_size, n_arrays, assume_sorted):
         for array in arrays:
             array.sort()
 
-    return get_time(algo, *arrays, assume_sorted=assume_sorted) 
+    return get_time(algo, *arrays, assume_sorted=assume_sorted)
 
 def plot_intersect_benchmark(assume_sorted, n_average):
     """
@@ -73,23 +87,22 @@ def plot_intersect_benchmark(assume_sorted, n_average):
 
     sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
     colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
-    def next_color():
-        return colors.pop()
 
-    for n in [15, 10, 5, 2]:
+    for n_arrays in [15, 10, 5, 2]:
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
-        for i in range(n_average):
+        for _i in range(n_average):
             snp_timing += np.array([
-                benchmark(snp.kway_intersect, s, n, assume_sorted)
+                benchmark(snp.kway_intersect, s, n_arrays, assume_sorted)
                 for s in sizes])
             np_timing += np.array([
-                benchmark(np_kway_intersect, s, n, assume_sorted)
+                benchmark(np_kway_intersect, s, n_arrays, assume_sorted)
                 for s in sizes])
 
-        c = next_color()
-        plt.plot(sizes, snp_timing / np_timing, label="intersect %d arrays" % n, color=c)
+        color = colors.pop()
+        plt.plot(sizes, snp_timing / np_timing,
+                 label="intersect %d arrays" % n_arrays, color=color)
 
     plt.xscale('log')
     plt.xlabel("array size")
@@ -109,23 +122,22 @@ def plot_merge_benchmark(assume_sorted, n_average):
 
     sizes = [1e7, 5e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3]
     colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
-    def next_color():
-        return colors.pop()
 
-    for n in [15, 10, 5, 2]:
+    for n_arrays in [15, 10, 5, 2]:
         snp_timing = np.zeros(len(sizes))
         np_timing = np.zeros(len(sizes))
 
-        for i in range(n_average):
+        for _i in range(n_average):
             snp_timing += np.array([
-                benchmark(snp.kway_merge, s, n, assume_sorted)
+                benchmark(snp.kway_merge, s, n_arrays, assume_sorted)
                 for s in sizes])
             np_timing += np.array([
-                benchmark(np_kway_merge, s, n, assume_sorted)
+                benchmark(np_kway_merge, s, n_arrays, assume_sorted)
                 for s in sizes])
 
-        c = next_color()
-        plt.plot(sizes, snp_timing / np_timing, label="merge %d arrays" % n, color=c)
+        color = colors.pop()
+        plt.plot(sizes, snp_timing / np_timing,
+                 label="merge %d arrays" % n_arrays, color=color)
 
     plt.xscale('log')
     plt.xlabel("array size")
@@ -136,30 +148,38 @@ def plot_merge_benchmark(assume_sorted, n_average):
     suffix = "_assume_sorted" if assume_sorted else ""
     plt.savefig("bm_merge%s.png" % suffix, dpi=300)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create benchmark plots to "
-        "compare the sortednp package to the default numpy methods.")
+
+def main():
+    """
+    Parse command line arguments and run the benchmark.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="Create benchmark plots to compare the sortednp package"
+                    " to the default numpy methods.")
 
     parser.add_argument("-n", "--average", default=5, type=int, dest='n',
-        help="Repeat each operation n times and take the average, "
-        "default is 5.")
+                        help="Repeat each operation n times and take the"
+                        " average, default is 5.")
 
     parser.add_argument("--quick", action="store_const", dest='n', const=1,
-        help="Perform each test only once.")
+                        help="Perform each test only once.")
 
-    args = parser.parse_args()
+    cli_args = parser.parse_args()
 
     print("The benchmark needs about 2GB of memory.")
 
     print("Benchmark: merge, assume_sorted=False")
-    plot_merge_benchmark(assume_sorted=False, n_average=args.n)
+    plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
 
     print("Benchmark: merge, assume_sorted=True")
-    plot_merge_benchmark(assume_sorted=True, n_average=args.n)
+    plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
 
     print("Benchmark: intersect, assume_sorted=False")
-    plot_intersect_benchmark(assume_sorted=False, n_average=args.n)
+    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
 
     print("Benchmark: intersect, assume_sorted=True")
-    plot_intersect_benchmark(assume_sorted=True, n_average=args.n)
+    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
 
+if __name__ == "__main__":
+    main()
