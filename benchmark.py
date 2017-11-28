@@ -222,17 +222,17 @@ def main():
 
     print("The benchmark needs about 2GB of memory.")
 
-    # print("Benchmark: merge, assume_sorted=False")
-    # plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
+    print("Benchmark: merge, assume_sorted=False")
+    plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
 
-    # print("Benchmark: merge, assume_sorted=True")
-    # plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
+    print("Benchmark: merge, assume_sorted=True")
+    plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
 
-    # print("Benchmark: intersect, assume_sorted=False")
-    # plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
+    print("Benchmark: intersect, assume_sorted=False")
+    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
 
-    # print("Benchmark: intersect, assume_sorted=True")
-    # plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
+    print("Benchmark: intersect, assume_sorted=True")
+    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
 
     print("Benchmark: intersect sparseness, assume_sorted=False")
     plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n)
