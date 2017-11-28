@@ -60,7 +60,7 @@ def get_random_array(size, sparseness=2):
     np.random.shuffle(pool)
     return pool[:int(size)]
 
-def benchmark(algo, array_size, n_arrays, assume_sorted):
+def benchmark(algo, array_size, n_arrays, assume_sorted, arrays=None):
     """
     Run a generic benchmark test. The given algorithm must be callable. This
     must be a calculate the k-way union or intersection for numpy of sortednp. The
@@ -70,7 +70,8 @@ def benchmark(algo, array_size, n_arrays, assume_sorted):
     started. If assume_sorted is False, the time it takes to sort the arrays
     is included in the execution time of the algorithm.
     """
-    arrays = [get_random_array(array_size) for i in range(n_arrays)]
+    if arrays is None:
+        arrays = [get_random_array(array_size) for i in range(n_arrays)]
 
     if assume_sorted:
         for array in arrays:
@@ -148,6 +149,45 @@ def plot_merge_benchmark(assume_sorted, n_average):
     suffix = "_assume_sorted" if assume_sorted else ""
     plt.savefig("bm_merge%s.png" % suffix, dpi=300)
 
+def plot_intersect_sparseness(assume_sorted, n_average):
+    """
+    Merge n = (2, 5, 10, 15) arrays, where all except one array contains all
+    integers from 0 to its, and the other array contains sparse integers.
+    """
+    plt.figure(figsize=(6, 4))
+    plt.subplot(111)
+
+    sparsenesses = [1, 1.3, 2, 5, 10, 20, 50]
+    colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
+
+    array_size = 1e6
+
+    for n_arrays in [15, 10, 5, 2]:
+        snp_timing = np.zeros(len(sparsenesses))
+        np_timing = np.zeros(len(sparsenesses))
+
+
+        for _i in range(n_average):
+            for _j, sparseness in enumerate(sparsenesses):
+                arrays = [get_random_array(array_size, sparseness)] \
+                     + [np.arange(array_size) for i in range(n_arrays - 1)]
+                snp_timing[_j] += \
+                    benchmark(snp.kway_intersect, None, None, assume_sorted, arrays)
+                np_timing[_j] += \
+                    benchmark(np_kway_intersect, None, None, assume_sorted, arrays)
+
+        color = colors.pop()
+        plt.plot(sparsenesses, snp_timing / np_timing,
+                 label="intersect %d arrays" % n_arrays, color=color)
+
+    plt.xscale('log')
+    plt.xlabel("Sparseness of first array")
+    plt.ylabel("Duration sortednp / numpy")
+    plt.xscale('log')
+    plt.legend()
+    plt.tight_layout()
+    suffix = "_assume_sorted" if assume_sorted else ""
+    plt.savefig("bm_intersect_sparse%s.png" % suffix, dpi=300)
 
 def main():
     """
@@ -180,6 +220,12 @@ def main():
 
     print("Benchmark: intersect, assume_sorted=True")
     plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
+
+    print("Benchmark: intersect sparseness, assume_sorted=False")
+    plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n)
+
+    print("Benchmark: intersect sparseness, assume_sorted=True")
+    plot_intersect_sparseness(assume_sorted=True, n_average=cli_args.n)
 
 if __name__ == "__main__":
     main()
