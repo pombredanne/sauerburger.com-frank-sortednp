@@ -3,7 +3,7 @@
 
 #include "sortednpmodule.h"
 
-#define SEARCH_METHOD galloping_search
+#define SEARCH_METHOD simple_search
 
 
 /**
