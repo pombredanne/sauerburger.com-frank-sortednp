@@ -173,6 +173,9 @@ def plot_intersect_sparseness(assume_sorted, n_average):
                      + [np.arange(array_size) for i in range(n_arrays - 1)]
                 snp_timing[_j] += \
                     benchmark(snp.kway_intersect, None, None, assume_sorted, arrays)
+
+                arrays = [get_random_array(array_size, sparseness)] \
+                     + [np.arange(array_size) for i in range(n_arrays - 1)]
                 np_timing[_j] += \
                     benchmark(np_kway_intersect, None, None, assume_sorted, arrays)
 
