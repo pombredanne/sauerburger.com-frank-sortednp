@@ -56,8 +56,16 @@ def get_random_array(size, sparseness=2):
     how likely it is to have duplicated items. Higher values produce more
     duplicates.
     """
-    pool = np.arange(0, size * sparseness).astype('float64')
+    if sparseness > 2:
+        enlarge = 2
+        factor = sparseness / 2
+    else:
+        enlarge = sparseness
+        factor = 1
+
+    pool = np.arange(0, size * enlarge).astype('float32')
     np.random.shuffle(pool)
+    pool *= factor
     return pool[:int(size)]
 
 def benchmark(algo, array_size, n_arrays, assume_sorted, arrays=None):
@@ -157,7 +165,7 @@ def plot_intersect_sparseness(assume_sorted, n_average):
     plt.figure(figsize=(6, 4))
     plt.subplot(111)
 
-    sparsenesses = [1, 1.3, 2, 5, 10, 20, 50]
+    sparsenesses = [1, 1.3, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
     colors = ['#8c564b', '#9467bd', '#d62728', '#2ca02c', '#ff7f0e', '#1f77b4']
 
     array_size = 1e6
@@ -170,12 +178,14 @@ def plot_intersect_sparseness(assume_sorted, n_average):
         for _i in range(n_average):
             for _j, sparseness in enumerate(sparsenesses):
                 arrays = [get_random_array(array_size, sparseness)] \
-                     + [np.arange(array_size) for i in range(n_arrays - 1)]
+                     + [np.arange(array_size).astype('float32') \
+                        for i in range(n_arrays - 1)]
                 snp_timing[_j] += \
                     benchmark(snp.kway_intersect, None, None, assume_sorted, arrays)
 
                 arrays = [get_random_array(array_size, sparseness)] \
-                     + [np.arange(array_size) for i in range(n_arrays - 1)]
+                     + [np.arange(array_size).astype('float32') \
+                        for i in range(n_arrays - 1)]
                 np_timing[_j] += \
                     benchmark(np_kway_intersect, None, None, assume_sorted, arrays)
 
@@ -212,17 +222,17 @@ def main():
 
     print("The benchmark needs about 2GB of memory.")
 
-    print("Benchmark: merge, assume_sorted=False")
-    plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
+    # print("Benchmark: merge, assume_sorted=False")
+    # plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
 
-    print("Benchmark: merge, assume_sorted=True")
-    plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
+    # print("Benchmark: merge, assume_sorted=True")
+    # plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
 
-    print("Benchmark: intersect, assume_sorted=False")
-    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
+    # print("Benchmark: intersect, assume_sorted=False")
+    # plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
 
-    print("Benchmark: intersect, assume_sorted=True")
-    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
+    # print("Benchmark: intersect, assume_sorted=True")
+    # plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n)
 
     print("Benchmark: intersect sparseness, assume_sorted=False")
     plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n)
