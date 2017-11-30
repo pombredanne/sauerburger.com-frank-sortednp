@@ -278,7 +278,7 @@ def main():
         run_intersect_simple(cli_args)
 
     if cli_args.intersect_binary:
-        run_intersect_galloping(cli_args)
+        run_intersect_binary(cli_args)
 
     if cli_args.intersect_galloping:
         run_intersect_galloping(cli_args)
