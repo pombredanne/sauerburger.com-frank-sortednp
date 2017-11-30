@@ -49,3 +49,9 @@ install-gtest: googletest
 googletest:
 	git clone https://github.com/google/googletest.git
 
+
+benchmark: bm-intersect-binary bm-intersect-simple \
+	bm-intersect-galloping bm-merge
+
+bm-%:
+	python3 benchmark.py $(QUICK) --$*

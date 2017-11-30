@@ -8,6 +8,11 @@ also sorted.
 
 from _sortednp import merge, intersect
 
+
+SIMPLE_SEARCH = 1
+BINARY_SEARCH = 2
+GALLOPING_SEARCH = 3
+
 def resolve(obj):
     """
     Helper function.
@@ -17,7 +22,7 @@ def resolve(obj):
     """
     return obj() if callable(obj) else obj
 
-def kway_merge(*arrays, assume_sorted=True):
+def kway_merge(*arrays, assume_sorted=True, **kwds):
     """
     Merge all given arrays and return the result. Depending on the optional
     flag assume_sorted, the function sorts the arrays before merging.
@@ -45,10 +50,10 @@ def kway_merge(*arrays, assume_sorted=True):
         array = resolve(array)
         if not assume_sorted:
             array.sort()
-        merge_result = merge(merge_result, array)
+        merge_result = merge(merge_result, array, **kwds)
     return merge_result
 
-def kway_intersect(*arrays, assume_sorted=True):
+def kway_intersect(*arrays, assume_sorted=True, **kwds):
     """
     Intersect all given arrays and return the result. Depending on the
     optional flag assume_sorted, the function sort sorts the arrays prior to
@@ -82,5 +87,5 @@ def kway_intersect(*arrays, assume_sorted=True):
         array = resolve(array)
         if not assume_sorted:
             array.sort()
-        intersect_result = intersect(intersect_result, array)
+        intersect_result = intersect(intersect_result, array, **kwds)
     return intersect_result

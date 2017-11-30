@@ -51,7 +51,7 @@ benchmark:
     - master
   script:
    - pip install matplotlib
-   - python3 benchmark.py
+   - make benchmark -j2
 
   artifacts:
     expire_in: 6 mos
@@ -64,7 +64,7 @@ benchmark_quick:
    - high-mem
   script:
    - pip install matplotlib
-   - python3 benchmark.py --quick
+   - QUICK='--quick' make benchmark -j2
   except:
     - master
   artifacts:

@@ -9,6 +9,8 @@
 #define NPY_NO_DEPRECATED_API NPY_1_12_API_VERSION
 #include <numpy/arrayobject.h>
 
+enum method_t {SIMPLE, BINARY, GALLOPPING};
+
 /**
  * Advance the pointer in order to find the given value in the sorted array.  If
  * the value if found, array index is at the first occurrence of value and false
@@ -130,14 +132,14 @@ bool galloping_search(T target, PyArrayObject *array, npy_intp *i,
 
 
 template <class T>
-PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array);
-
-PyObject *sortednp_intersect(PyObject *self, PyObject *args);
+PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
+  method_t search_method);
+PyObject* sortednp_intersect(PyObject *self, PyObject *args, PyObject *kwds);
 
 template <class T>
 PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array);
 
-PyObject *sortednp_merge(PyObject *self, PyObject *args);
+PyObject* sortednp_merge(PyObject *self, PyObject *args);
 
 
 #endif  // SORTEDNPMODULE_H_

@@ -19,7 +19,7 @@ matplotlib.pyplot.switch_backend('Agg')
 
 np.random.seed(2853)
 
-def np_kway_intersect(*arrays, assume_sorted):
+def np_kway_intersect(*arrays, assume_sorted, **_kwds):
     """
     Intersect all arrays iteratively.
     """
@@ -29,7 +29,7 @@ def np_kway_intersect(*arrays, assume_sorted):
 
     return reduce(np.intersect1d, arrays)
 
-def np_kway_merge(*arrays, assume_sorted):
+def np_kway_merge(*arrays, assume_sorted, **_kwds):
     """
     Intersect all arrays iteratively.
     """
@@ -68,7 +68,7 @@ def get_random_array(size, sparseness=2):
     pool *= factor
     return pool[:int(size)]
 
-def benchmark(algo, array_size, n_arrays, assume_sorted, arrays=None):
+def benchmark(func, arrays, assume_sorted, algorithm=None):
     """
     Run a generic benchmark test. The given algorithm must be callable. This
     must be a calculate the k-way union or intersection for numpy of sortednp. The
@@ -78,16 +78,21 @@ def benchmark(algo, array_size, n_arrays, assume_sorted, arrays=None):
     started. If assume_sorted is False, the time it takes to sort the arrays
     is included in the execution time of the algorithm.
     """
-    if arrays is None:
+    if isinstance(arrays, tuple):
+        array_size, n_arrays = arrays
         arrays = [get_random_array(array_size) for i in range(n_arrays)]
 
     if assume_sorted:
         for array in arrays:
             array.sort()
 
-    return get_time(algo, *arrays, assume_sorted=assume_sorted)
+    kwds = {"assume_sorted": assume_sorted}
+    if algorithm is not None:
+        kwds['algorithm'] = algorithm
 
-def plot_intersect_benchmark(assume_sorted, n_average):
+    return get_time(func, *arrays, **kwds)
+
+def plot_intersect_benchmark(assume_sorted, n_average, algorithm=None):
     """
     Create the plot for the intersection benchmark.
     """
@@ -103,10 +108,11 @@ def plot_intersect_benchmark(assume_sorted, n_average):
 
         for _i in range(n_average):
             snp_timing += np.array([
-                benchmark(snp.kway_intersect, s, n_arrays, assume_sorted)
+                benchmark(snp.kway_intersect, (s, n_arrays), assume_sorted,
+                          algorithm=algorithm)
                 for s in sizes])
             np_timing += np.array([
-                benchmark(np_kway_intersect, s, n_arrays, assume_sorted)
+                benchmark(np_kway_intersect, (s, n_arrays), assume_sorted)
                 for s in sizes])
 
         color = colors.pop()
@@ -120,6 +126,15 @@ def plot_intersect_benchmark(assume_sorted, n_average):
     plt.legend()
     plt.tight_layout()
     suffix = "_assume_sorted" if assume_sorted else ""
+    if algorithm is not None:
+        if algorithm == snp.SIMPLE_SEARCH:
+            suffix += "_simple"
+        elif algorithm == snp.BINARY_SEARCH:
+            suffix += "_binary"
+        elif algorithm == snp.GALLOPING_SEARCH:
+            suffix += "_galloping"
+        else:
+            suffix += "_invalid"
     plt.savefig("bm_intersect%s.png" % suffix, dpi=300)
 
 def plot_merge_benchmark(assume_sorted, n_average):
@@ -138,10 +153,10 @@ def plot_merge_benchmark(assume_sorted, n_average):
 
         for _i in range(n_average):
             snp_timing += np.array([
-                benchmark(snp.kway_merge, s, n_arrays, assume_sorted)
+                benchmark(snp.kway_merge, (s, n_arrays), assume_sorted)
                 for s in sizes])
             np_timing += np.array([
-                benchmark(np_kway_merge, s, n_arrays, assume_sorted)
+                benchmark(np_kway_merge, (s, n_arrays), assume_sorted)
                 for s in sizes])
 
         color = colors.pop()
@@ -157,7 +172,7 @@ def plot_merge_benchmark(assume_sorted, n_average):
     suffix = "_assume_sorted" if assume_sorted else ""
     plt.savefig("bm_merge%s.png" % suffix, dpi=300)
 
-def plot_intersect_sparseness(assume_sorted, n_average):
+def plot_intersect_sparseness(assume_sorted, n_average, algorithm=None):
     """
     Merge n = (2, 5, 10, 15) arrays, where all except one array contains all
     integers from 0 to its, and the other array contains sparse integers.
@@ -181,13 +196,14 @@ def plot_intersect_sparseness(assume_sorted, n_average):
                      + [np.arange(array_size).astype('float32') \
                         for i in range(n_arrays - 1)]
                 snp_timing[_j] += \
-                    benchmark(snp.kway_intersect, None, None, assume_sorted, arrays)
+                    benchmark(snp.kway_intersect, arrays, assume_sorted,
+                              algorithm=algorithm)
 
                 arrays = [get_random_array(array_size, sparseness)] \
                      + [np.arange(array_size).astype('float32') \
                         for i in range(n_arrays - 1)]
                 np_timing[_j] += \
-                    benchmark(np_kway_intersect, None, None, assume_sorted, arrays)
+                    benchmark(np_kway_intersect, arrays, assume_sorted)
 
         color = colors.pop()
         plt.plot(sparsenesses, snp_timing / np_timing,
@@ -200,6 +216,17 @@ def plot_intersect_sparseness(assume_sorted, n_average):
     plt.legend()
     plt.tight_layout()
     suffix = "_assume_sorted" if assume_sorted else ""
+    if algorithm is not None:
+        if algorithm == snp.SIMPLE_SEARCH:
+            suffix += "_simple"
+        elif algorithm == snp.BINARY_SEARCH:
+            suffix += "_binary"
+        elif algorithm == snp.GALLOPING_SEARCH:
+            suffix += "_galloping"
+        else:
+            suffix += "_invalid"
+
+
     plt.savefig("bm_intersect_sparse%s.png" % suffix, dpi=300)
 
 def main():
@@ -218,16 +245,58 @@ def main():
     parser.add_argument("--quick", action="store_const", dest='n', const=1,
                         help="Perform each test only once.")
 
+    parser.add_argument("--merge", action="store_true",
+                        help="Benchmark merge operation.")
+
+    parser.add_argument("--intersect", action="store_true",
+                        help="Benchmark intersect operation using default"
+                        " algorithm.")
+
+    parser.add_argument("--intersect-simple", action="store_true",
+                        help="Benchmark intersect operation using simple"
+                        " search algorithm.")
+
+    parser.add_argument("--intersect-binary", action="store_true",
+                        help="Benchmark intersect operation using binary"
+                        " search algorithm.")
+
+    parser.add_argument("--intersect-galloping", action="store_true",
+                        help="Benchmark intersect operation using galloping"
+                        " search algorithm.")
+
     cli_args = parser.parse_args()
 
     print("The benchmark needs about 2GB of memory.")
 
+    if cli_args.merge:
+        run_merge(cli_args)
+
+    if cli_args.intersect:
+        run_intersect_default(cli_args)
+
+    if cli_args.intersect_simple:
+        run_intersect_simple(cli_args)
+
+    if cli_args.intersect_binary:
+        run_intersect_galloping(cli_args)
+
+    if cli_args.intersect_galloping:
+        run_intersect_galloping(cli_args)
+
+def run_merge(cli_args):
+    """
+    Run merge benchmark.
+    """
     print("Benchmark: merge, assume_sorted=False")
     plot_merge_benchmark(assume_sorted=False, n_average=cli_args.n)
 
     print("Benchmark: merge, assume_sorted=True")
     plot_merge_benchmark(assume_sorted=True, n_average=cli_args.n)
 
+def run_intersect_default(cli_args):
+    """
+    Run intersection benchmark using default search.
+    """
     print("Benchmark: intersect, assume_sorted=False")
     plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n)
 
@@ -239,6 +308,68 @@ def main():
 
     print("Benchmark: intersect sparseness, assume_sorted=True")
     plot_intersect_sparseness(assume_sorted=True, n_average=cli_args.n)
+
+def run_intersect_simple(cli_args):
+    """
+    Run intersection benchmark using simple search.
+    """
+    print("Benchmark: intersect (simple), assume_sorted=False")
+    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n,
+                             algorithm=snp.SIMPLE_SEARCH)
+
+    print("Benchmark: intersect (simple), assume_sorted=True")
+    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n,
+                             algorithm=snp.SIMPLE_SEARCH)
+
+    print("Benchmark: intersect sparseness (simple), assume_sorted=False")
+    plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n,
+                              algorithm=snp.SIMPLE_SEARCH)
+
+    print("Benchmark: intersect sparseness (simple), assume_sorted=True")
+    plot_intersect_sparseness(assume_sorted=True, n_average=cli_args.n,
+                              algorithm=snp.SIMPLE_SEARCH)
+
+
+def run_intersect_binary(cli_args):
+    """
+    Run intersection benchmark using binary search.
+    """
+    print("Benchmark: intersect (binary), assume_sorted=False")
+    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n,
+                             algorithm=snp.BINARY_SEARCH)
+
+    print("Benchmark: intersect (binary), assume_sorted=True")
+    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n,
+                             algorithm=snp.BINARY_SEARCH)
+
+    print("Benchmark: intersect sparseness (binary), assume_sorted=False")
+    plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n,
+                              algorithm=snp.BINARY_SEARCH)
+
+    print("Benchmark: intersect sparseness (binary), assume_sorted=True")
+    plot_intersect_sparseness(assume_sorted=True, n_average=cli_args.n,
+                              algorithm=snp.BINARY_SEARCH)
+
+
+def run_intersect_galloping(cli_args):
+    """
+    Run intersection benchmark using galloping search.
+    """
+    print("Benchmark: intersect (galloping), assume_sorted=False")
+    plot_intersect_benchmark(assume_sorted=False, n_average=cli_args.n,
+                             algorithm=snp.GALLOPING_SEARCH)
+
+    print("Benchmark: intersect (galloping), assume_sorted=True")
+    plot_intersect_benchmark(assume_sorted=True, n_average=cli_args.n,
+                             algorithm=snp.GALLOPING_SEARCH)
+
+    print("Benchmark: intersect sparseness (galloping), assume_sorted=False")
+    plot_intersect_sparseness(assume_sorted=False, n_average=cli_args.n,
+                              algorithm=snp.GALLOPING_SEARCH)
+
+    print("Benchmark: intersect sparseness (galloping), assume_sorted=True")
+    plot_intersect_sparseness(assume_sorted=True, n_average=cli_args.n,
+                              algorithm=snp.GALLOPING_SEARCH)
 
 if __name__ == "__main__":
     main()

@@ -88,8 +88,7 @@ $ python3 intersect.py
 # Performance
 The performance of the package can be compared with the default implementation
 of numpy. The ratio of the execution time between sortednp and numpy is
-deplayed as a function the array size. The tests are performed for
-merging/intersecting two or more arrays.
+shown for various different benchmark tests.
 
 The performance can be estimated under two different assumptions. If the arrays
 which are merged/intersected are already sorted, one should not consider the
@@ -97,30 +96,67 @@ time it takes to sort the random arrays in the benchmark. On the other hand if
 one considers a scenario in which the arrays are not sorted, one should take
 the sorting time into account.
 
-Both benchmarks are shown in the following table.
+The first two tests study the dependence of the arrays size. In the last test
+(Intersect Sparseness) the benchmark intersect arrays, which consist
+of consecutive integers except the first array. The average step between two
+items in the first array is varied in this scenario.  
 
+## Assume sorted arrays
+The following table summarizes the performance compared to numpy if one ignores
+the time it takes to sort the initial arrays.
 <table>
   <tr>
-    <th>Assume sorted</th>
-    <th>Intersect</th>
+    <th>Test</th>
+    <th>Simple Search</th>
+    <th>Binary Search</th>
+    <th>Galloping Search</th>
+  </tr>
+  <tr>
     <th>Merge</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge.png?job=benchmark_quick" /> </td>
   </tr>
   <tr>
-    <td><code>True</code></td> 
-    <td>
-        <img alt="Intersect benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect_assume_sorted.png?job=benchmark" />
-    </td>
-    <td>
-        <img alt="Merge benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge_assume_sorted.png?job=benchmark" />
-    </td>
+    <th>Intersect</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect.png?job=benchmark_quick" /> </td>
   </tr>
   <tr>
-    <td><code>False</code></td> 
-    <td>
-        <img alt="Intersect benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_intersect.png?job=benchmark" />
-    </td>
-    <td>
-        <img alt="Merge benchmark" src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts/master/raw/bm_merge.png?job=benchmark" />
-    </td>
+    <th>Intersect Sparseness</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse.png?job=benchmark_quick" /> </td>
   </tr>
+</table>
 
+## Include sorting time
+The following table summarizes the performance compared to numpy if one takes
+the time it takes to sort the initial arrays into account.
+<table>
+  <tr>
+    <th>Test</th>
+    <th>Simple Search</th>
+    <th>Binary Search</th>
+    <th>Galloping Search</th>
+  </tr>
+  <tr>
+    <th>Intersect</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_assume_sorted.png?job=benchmark_quick" /> </td>
+  </tr>
+  <tr>
+    <th>Merge</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_merge_assume_sorted.png?job=benchmark_quick" /> </td>
+  <tr>
+    <th>Intersect Sparseness</th>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse_assume_sorted.png?job=benchmark_quick" /> </td>
+    <td> <img src="https://gitlab.sauerburger.com/frank/sortednp/-/jobs/artifacts3-optimize-algorithms/graw/bm_intersect_sparse_assume_sorted.png?job=benchmark_quick" /> </td>
+  </tr>
+  </tr>
+</table>

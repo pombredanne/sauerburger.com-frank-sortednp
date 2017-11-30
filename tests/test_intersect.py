@@ -3,11 +3,12 @@ from abc import ABCMeta, abstractmethod
 import sys
 import weakref
 import unittest
+from unittest import TestCase as TC
 import numpy as np
 
 import sortednp as snp
 
-class IntersectBase(metaclass=ABCMeta):
+class Base(metaclass=ABCMeta):
     """
     Define general test cases for the intersect method. Sub-classes need to
     implement have to overwrite the dtype method.
@@ -43,6 +44,14 @@ class IntersectBase(metaclass=ABCMeta):
                 
 
     @abstractmethod
+    def get_kwds(self):
+        """
+        Additional keywords passed to the intersect method. By overwriting
+        this, test cases can change the search algorithm.
+        """
+        pass
+
+    @abstractmethod
     def get_dtype(self):
         """
         Returns the numpy data type, which should be used for all tests.
@@ -56,7 +65,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([0, 3, 4, 6, 7], dtype=self.get_dtype())
         b = np.array([1, 2, 3, 5, 7, 9], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -71,7 +80,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 8, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -84,7 +93,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7, 9])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -99,7 +108,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 9], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7, 9])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -112,7 +121,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([1, 2, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [2, 3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -126,7 +135,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([2, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [2, 3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -139,7 +148,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([1, 3, 5, 10], dtype=self.get_dtype())
         b = np.array([2, 4, 7, 8, 20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
@@ -153,12 +162,12 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([], dtype=self.get_dtype())
         b = np.array([2, 4, 7, 8, 20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
 
-        i = snp.intersect(b, a)
+        i = snp.intersect(b, a, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
@@ -171,7 +180,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([], dtype=self.get_dtype())
         b = np.array([], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
@@ -184,11 +193,11 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([4, 5, 7], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [4, 5, 7])
         self.assertEqual(i.dtype, self.get_dtype())
 
-        i = snp.intersect(b, a)
+        i = snp.intersect(b, a, **self.get_kwds())
         self.assertEqual(list(i), [4, 5, 7])
         self.assertEqual(i.dtype, self.get_dtype())
 
@@ -199,7 +208,7 @@ class IntersectBase(metaclass=ABCMeta):
         """
         a = np.array([3, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, a)
+        i = snp.intersect(a, a, **self.get_kwds())
         self.assertEqual(list(i), [3, 4, 6, 8])
         self.assertEqual(list(a), [3, 4, 6, 8])
         self.assertEqual(i.dtype, self.get_dtype())
@@ -215,7 +224,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([1, 2, 3], dtype=self.get_dtype())
         b = np.array([4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
@@ -228,14 +237,14 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([1, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [1])
         self.assertEqual(i.dtype, self.get_dtype())
 
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([1, 2, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [1, 2])
         self.assertEqual(i.dtype, self.get_dtype())
 
@@ -248,7 +257,7 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([2, 2, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [2, 2])
         self.assertEqual(i.dtype, self.get_dtype())
 
@@ -259,9 +268,9 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.zeros((10, 2), dtype=self.get_dtype())
         b = np.array([2, 3, 5, 6], dtype=self.get_dtype())
 
-        self.assertRaises(ValueError, snp.intersect, a, b)
-        self.assertRaises(ValueError, snp.intersect, b, a)
-        self.assertRaises(ValueError, snp.intersect, a, a)
+        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
+        self.assertRaises(ValueError, snp.intersect, b, a, **self.get_kwds())
+        self.assertRaises(ValueError, snp.intersect, a, a, **self.get_kwds())
         
     def test_raise_non_array(self):
         """
@@ -269,9 +278,9 @@ class IntersectBase(metaclass=ABCMeta):
         """
         b = np.array([2, 3, 5, 6], dtype=self.get_dtype())
 
-        self.assertRaises(TypeError, snp.intersect, 3, b)
-        self.assertRaises(TypeError, snp.intersect, b, 2)
-        self.assertRaises(TypeError, snp.intersect, 3, "a")
+        self.assertRaises(TypeError, snp.intersect, 3, b, **self.get_kwds())
+        self.assertRaises(TypeError, snp.intersect, b, 2, **self.get_kwds())
+        self.assertRaises(TypeError, snp.intersect, 3, "a", **self.get_kwds())
 
     def test_reference_counting_principle(self):
         """
@@ -330,7 +339,7 @@ class IntersectBase(metaclass=ABCMeta):
         self.assertIsNotNone(weak_b())
 
         ## Intersect
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
 
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
@@ -375,11 +384,11 @@ class IntersectBase(metaclass=ABCMeta):
         a = np.array(10)
 
         self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(TypeError, snp.intersect, a, [1, 2])
+        self.assertRaises(TypeError, snp.intersect, a, [1, 2], **self.get_kwds())
         self.assertEqual(sys.getrefcount(a), 2)
 
         self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(TypeError, snp.intersect, [1, 2], a)
+        self.assertRaises(TypeError, snp.intersect, [1, 2], a, **self.get_kwds())
         self.assertEqual(sys.getrefcount(a), 2)
 
     def test_reference_counting_early_exit_dim(self):
@@ -393,16 +402,16 @@ class IntersectBase(metaclass=ABCMeta):
 
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
-        self.assertRaises(ValueError, snp.intersect, a, b)
+        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
 
         self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(ValueError, snp.intersect, b, a)
+        self.assertRaises(ValueError, snp.intersect, b, a, **self.get_kwds())
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
 
-class IntersectTestCase_Double(IntersectBase, unittest.TestCase):
+class ITC_Double:
     def get_dtype(self):
         return 'float64'
 
@@ -413,11 +422,11 @@ class IntersectTestCase_Double(IntersectBase, unittest.TestCase):
         a = np.array([-1.3e300, -1.2e300, -2.3e-200, 3.14e20], dtype=self.get_dtype())
         b = np.array([-1.3e300, -1.1e300, -2.3e-200, 3.14e20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertListAlmostEqual(list(i), [-1.3e300, -2.3e-200, 3.14e20])
         self.assertEqual(i.dtype, self.get_dtype())
 
-class IntersectTestCase_Float(IntersectBase, unittest.TestCase):
+class ITC_Float:
     def get_dtype(self):
         return 'float32'
 
@@ -428,14 +437,14 @@ class IntersectTestCase_Float(IntersectBase, unittest.TestCase):
         a = np.array([-1.3e30, -1.2e30, -2.3e-20, 3.14e20], dtype=self.get_dtype())
         b = np.array([-1.3e30, -1.1e30, -2.3e-20, 3.14e20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         i_corr = np.array([-1.3e30, -2.3e-20, 3.14e20],
             dtype=self.get_dtype())
         self.assertListAlmostEqual(list(i), list(i_corr), places=3)
         self.assertEqual(i.dtype, self.get_dtype())
 
 
-class IntersectTestCase_Int8(IntersectBase, unittest.TestCase):
+class ITC_Int8:
     def get_dtype(self):
         return 'int8'
     def test_type_limites(self):
@@ -445,11 +454,11 @@ class IntersectTestCase_Int8(IntersectBase, unittest.TestCase):
         a = np.array([-128, 3, 4, 127], dtype=self.get_dtype())
         b = np.array([-128, 3, 2, 127], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [-128, 3, 127])
         self.assertEqual(i.dtype, self.get_dtype())
 
-class IntersectTestCase_Int16(IntersectBase, unittest.TestCase):
+class ITC_Int16:
     def get_dtype(self):
         return 'int16'
     def test_type_limites(self):
@@ -459,11 +468,11 @@ class IntersectTestCase_Int16(IntersectBase, unittest.TestCase):
         a = np.array([-32768, 3, 4, 32767], dtype=self.get_dtype())
         b = np.array([-32768, 3, 2, 32767], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [-32768, 3, 32767])
         self.assertEqual(i.dtype, self.get_dtype())
 
-class IntersectTestCase_Int32(IntersectBase, unittest.TestCase):
+class ITC_Int32:
     def get_dtype(self):
         return 'int32'
     def test_type_limites(self):
@@ -473,11 +482,11 @@ class IntersectTestCase_Int32(IntersectBase, unittest.TestCase):
         a = np.array([-2147483647, 3, 4, 2147483647], dtype=self.get_dtype())
         b = np.array([-2147483647, 3, 2, 2147483647], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [-2147483647, 3, 2147483647])
         self.assertEqual(i.dtype, self.get_dtype())
 
-class IntersectTestCase_Int64(IntersectBase, unittest.TestCase):
+class ITC_Int64:
     def get_dtype(self):
         return 'int64'
     def test_type_limites(self):
@@ -487,21 +496,22 @@ class IntersectTestCase_Int64(IntersectBase, unittest.TestCase):
         a = np.array([-9223372036854775807, 3, 4, 9223372036854775807], dtype=self.get_dtype())
         b = np.array([-9223372036854775807, 3, 2, 9223372036854775807], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [-9223372036854775807, 3, 9223372036854775807])
         self.assertEqual(i.dtype, self.get_dtype())
  
  
-class IntersectTestCase_UInt8(IntersectBase, unittest.TestCase):
+class ITC_UInt8:
     def get_dtype(self):
         return 'uint8'
         a = np.array([0, 3, 4, 255], dtype=self.get_dtype())
         b = np.array([0, 3, 2, 255], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [0, 3, 255])
         self.assertEqual(i.dtype, self.get_dtype())
-class IntersectTestCase_UInt16(IntersectBase, unittest.TestCase):
+
+class ITC_UInt16:
     def get_dtype(self):
         return 'uint16'
     def test_type_limites(self):
@@ -511,10 +521,11 @@ class IntersectTestCase_UInt16(IntersectBase, unittest.TestCase):
         a = np.array([0, 3, 4, 65535], dtype=self.get_dtype())
         b = np.array([0, 3, 2, 65535], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [0, 3, 65535])
         self.assertEqual(i.dtype, self.get_dtype())
-class IntersectTestCase_UInt32(IntersectBase, unittest.TestCase):
+
+class ITC_UInt32:
     def get_dtype(self):
         return 'uint32'
     def test_type_limites(self):
@@ -524,23 +535,97 @@ class IntersectTestCase_UInt32(IntersectBase, unittest.TestCase):
         a = np.array([0, 3, 4, 4294967295], dtype=self.get_dtype())
         b = np.array([0, 3, 2, 4294967295], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [0, 3, 4294967295])
         self.assertEqual(i.dtype, self.get_dtype())
-class IntersectTestCase_UInt64(IntersectBase, unittest.TestCase):
+
+class ITC_UInt64:
     def get_dtype(self):
         return 'uint64'
+    def test_type_limites(self):
         """
         Ensure that intersecting works with numbers specific to this data type.
         """
         a = np.array([0, 3, 4, 18446744073709551615], dtype=self.get_dtype())
         b = np.array([0, 3, 2, 18446744073709551615], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b)
+        i = snp.intersect(a, b, **self.get_kwds())
         self.assertEqual(list(i), [0, 3, 18446744073709551615])
         self.assertEqual(i.dtype, self.get_dtype())
 
-class IntersectTestCase_TypeError(unittest.TestCase):
+class ITC_Default:
+    def get_kwds(self):
+        """
+        Use default value of search algorithm.
+        """
+        return {}
+
+class ITC_Simple:
+    def get_kwds(self):
+        """
+        Use simple search.
+        """
+        return {"algorithm": snp.SIMPLE_SEARCH}
+
+class ITC_Binary:
+    def get_kwds(self):
+        """
+        Use binary search.
+        """
+        return {"algorithm": snp.BINARY_SEARCH}
+
+class ITC_Galloping:
+    def get_kwds(self):
+        """
+        Use galloping search.
+        """
+        return {"algorithm": snp.GALLOPING_SEARCH}
+
+class ITC_Default_Double(ITC_Default, ITC_Double, TC, Base): pass
+class ITC_Default_Float(ITC_Default, ITC_Float, TC, Base): pass
+class ITC_Default_Int8(ITC_Default, ITC_Int8, TC, Base): pass
+class ITC_Default_Int16(ITC_Default, ITC_Int16, TC, Base): pass
+class ITC_Default_Int32(ITC_Default, ITC_Int32, TC, Base): pass
+class ITC_Default_Int64(ITC_Default, ITC_Int64, TC, Base): pass
+class ITC_Default_UInt8(ITC_Default, ITC_UInt8, TC, Base): pass
+class ITC_Default_UInt16(ITC_Default, ITC_UInt16, TC, Base): pass
+class ITC_Default_UInt32(ITC_Default, ITC_UInt32, TC, Base): pass
+class ITC_Default_UInt64(ITC_Default, ITC_UInt64, TC, Base): pass
+
+class ITC_Simple_Double(ITC_Simple, ITC_Double, TC, Base): pass
+class ITC_Simple_Float(ITC_Simple, ITC_Float, TC, Base): pass
+class ITC_Simple_Int8(ITC_Simple, ITC_Int8, TC, Base): pass
+class ITC_Simple_Int16(ITC_Simple, ITC_Int16, TC, Base): pass
+class ITC_Simple_Int32(ITC_Simple, ITC_Int32, TC, Base): pass
+class ITC_Simple_Int64(ITC_Simple, ITC_Int64, TC, Base): pass
+class ITC_Simple_UInt8(ITC_Simple, ITC_UInt8, TC, Base): pass
+class ITC_Simple_UInt16(ITC_Simple, ITC_UInt16, TC, Base): pass
+class ITC_Simple_UInt32(ITC_Simple, ITC_UInt32, TC, Base): pass
+class ITC_Simple_UInt64(ITC_Simple, ITC_UInt64, TC, Base): pass
+
+class ITC_Binary_Double(ITC_Binary, ITC_Double, TC, Base): pass
+class ITC_Binary_Float(ITC_Binary, ITC_Float, TC, Base): pass
+class ITC_Binary_Int8(ITC_Binary, ITC_Int8, TC, Base): pass
+class ITC_Binary_Int16(ITC_Binary, ITC_Int16, TC, Base): pass
+class ITC_Binary_Int32(ITC_Binary, ITC_Int32, TC, Base): pass
+class ITC_Binary_Int64(ITC_Binary, ITC_Int64, TC, Base): pass
+class ITC_Binary_UInt8(ITC_Binary, ITC_UInt8, TC, Base): pass
+class ITC_Binary_UInt16(ITC_Binary, ITC_UInt16, TC, Base): pass
+class ITC_Binary_UInt32(ITC_Binary, ITC_UInt32, TC, Base): pass
+class ITC_Binary_UInt64(ITC_Binary, ITC_UInt64, TC, Base): pass
+
+class ITC_Galloping_Double(ITC_Galloping, ITC_Double, TC, Base): pass
+class ITC_Galloping_Float(ITC_Galloping, ITC_Float, TC, Base): pass
+class ITC_Galloping_Int8(ITC_Galloping, ITC_Int8, TC, Base): pass
+class ITC_Galloping_Int16(ITC_Galloping, ITC_Int16, TC, Base): pass
+class ITC_Galloping_Int32(ITC_Galloping, ITC_Int32, TC, Base): pass
+class ITC_Galloping_Int64(ITC_Galloping, ITC_Int64, TC, Base): pass
+class ITC_Galloping_UInt8(ITC_Galloping, ITC_UInt8, TC, Base): pass
+class ITC_Galloping_UInt16(ITC_Galloping, ITC_UInt16, TC, Base): pass
+class ITC_Galloping_UInt32(ITC_Galloping, ITC_UInt32, TC, Base): pass
+class ITC_Galloping_UInt64(ITC_Galloping, ITC_UInt64, TC, Base): pass
+
+class ITC_TypeError:
     def test_invalid_type(self):
         """
         Ensure that intersect raises an exception, if it is called with an
@@ -549,7 +634,7 @@ class IntersectTestCase_TypeError(unittest.TestCase):
         a = np.array([1, 3, 7], dtype='complex')
         b = np.array([2, 5, 6], dtype='complex')
 
-        self.assertRaises(ValueError, snp.intersect, a, b)
+        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
 
     def test_different_types(self):
         """
@@ -559,5 +644,10 @@ class IntersectTestCase_TypeError(unittest.TestCase):
         a = np.array([1, 3, 7], dtype='float32')
         b = np.array([2, 5, 6], dtype='float64')
 
-        self.assertRaises(ValueError, snp.intersect, a, b)
+        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
 
+
+class ITC_Default_TypeError(ITC_Default, ITC_TypeError, TC): pass
+class ITC_Simple_TypeError(ITC_Simple, ITC_TypeError, TC): pass
+class ITC_Binary_TypeError(ITC_Binary, ITC_TypeError, TC): pass
+class ITC_Galloping_TypeError(ITC_Galloping, ITC_TypeError, TC): pass

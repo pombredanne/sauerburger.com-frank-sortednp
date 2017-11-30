@@ -5,7 +5,6 @@
 
 #define SEARCH_METHOD galloping_search
 
-
 /**
  * Internal helper method.
  *
@@ -14,12 +13,29 @@
  * parameter is used to call the templated function.
  */
 template <typename T>
-PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
+PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
+    method_t search_method) {
   // Since the size of the intersection array can not be known in advance we
   // need to create an array of at least the size of the smaller array.
   npy_intp len_a = PyArray_DIMS(a_array)[0];
   npy_intp len_b = PyArray_DIMS(b_array)[0];
   npy_intp new_dim[1] = {len_a < len_b ? len_a : len_b};
+
+
+
+  // Select the search function now and not during each look iteration.
+  bool (*search_func)(T, PyArrayObject*, npy_intp*, const npy_intp&) = NULL;
+  switch (search_method) {
+    case SIMPLE:
+      search_func = &simple_search;
+      break;
+    case BINARY:
+      search_func = &binary_search;
+      break;
+    case GALLOPPING:
+      search_func = &galloping_search;
+      break;
+  }
 
   // Creating the new array sets the reference counter to 1 and passes the
   // ownership of the returned reference to the caller. The method steals the
@@ -44,11 +60,11 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
   // Actual computation of the intersection.
   while (i_a < len_a && i_b < len_b) {
     if (v_a < v_b) {
-      bool exit = SEARCH_METHOD(v_b, a_array, &i_a, len_a);
+      bool exit = search_func(v_b, a_array, &i_a, len_a);
       v_a = *(reinterpret_cast<T*>(PyArray_GETPTR1(a_array, i_a)));
       if (exit) { break; }
     } else if (v_b < v_a) {
-      bool exit = SEARCH_METHOD(v_a, b_array, &i_b, len_b);
+      bool exit = search_func(v_a, b_array, &i_b, len_b);
       v_b = *(reinterpret_cast<T*>(PyArray_GETPTR1(b_array, i_b)));
       if (exit) { break; }
     }
@@ -83,15 +99,25 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array) {
  * elements common in both arrays. The ownership of the returned reference is
  * passed to the caller.
  */
-PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
+PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   // References to the arguments are borrowed. Counter should not be
   // incremented since input arrays are not stored.
 
   PyObject *a, *b;
+  int algorithm = -1;
+
+  // Prepare keyword strings
+  char s_a[] = "a";
+  char s_b[] = "b";
+  char s_algorithm[] = "algorithm";
+  char * kwlist[] = {s_a, s_b, s_algorithm, NULL};
+
+
 
   // PyArg_ParseTuple returns borrowed references. This is fine, the input
   // arrays are not stored.
-  if (!PyArg_ParseTuple(args, "O!O!", &PyArray_Type, &a, &PyArray_Type, &b)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|i", kwlist,
+      &PyArray_Type, &a, &PyArray_Type, &b, &algorithm)) {
     // Reference counters have not been changed.
     return NULL;
   }
@@ -138,40 +164,60 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  // Parse algorithm argument
+  method_t search_method;
+  switch (algorithm) {
+    case -1:  // default value
+    case 1:
+      search_method = SIMPLE;
+      break;
+    case 2:
+      search_method = BINARY;
+      break;
+    case 3:
+      search_method = GALLOPPING;
+      break;
+    default:
+      PyErr_SetString(PyExc_ValueError,
+        "Invalid search algorithm.");
+      // Reference counter of input arrays have been fixed. It is safe to exit.
+      return NULL;
+  }
+
 
   PyObject* out;
 
   // Differentiate between different data types.
   switch (PyArray_TYPE(a_array)) {
     case NPY_INT8:
-      out = intersect<int8_t>(a_array, b_array);
+      out = intersect<int8_t>(a_array, b_array, search_method);
       break;
     case NPY_INT16:
-      out = intersect<int16_t>(a_array, b_array);
+      out = intersect<int16_t>(a_array, b_array, search_method);
       break;
     case NPY_INT32:
-      out = intersect<int32_t>(a_array, b_array);
+      out = intersect<int32_t>(a_array, b_array, search_method);
       break;
     case NPY_INT64:
-      out = intersect<int64_t>(a_array, b_array);
+      out = intersect<int64_t>(a_array, b_array, search_method);
       break;
     case NPY_UINT8:
-      out = intersect<uint8_t>(a_array, b_array);
+      out = intersect<uint8_t>(a_array, b_array, search_method);
       break;
     case NPY_UINT16:
-      out = intersect<uint16_t>(a_array, b_array);
+      out = intersect<uint16_t>(a_array, b_array, search_method);
       break;
     case NPY_UINT32:
-      out = intersect<uint32_t>(a_array, b_array);
+      out = intersect<uint32_t>(a_array, b_array, search_method);
       break;
     case NPY_UINT64:
-      out = intersect<uint64_t>(a_array, b_array);
+      out = intersect<uint64_t>(a_array, b_array, search_method);
       break;
     case NPY_FLOAT32:
-      out = intersect<float>(a_array, b_array);
+      out = intersect<float>(a_array, b_array, search_method);
       break;
     case NPY_FLOAT64:
-      out = intersect<double>(a_array, b_array);
+      out = intersect<double>(a_array, b_array, search_method);
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "Data type not supported.");
@@ -364,7 +410,7 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
 
 PyMethodDef SortedNpMethods[] = {
   {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
-  {"intersect",  sortednp_intersect, METH_VARARGS,
+  {"intersect",  (PyCFunction) sortednp_intersect, METH_VARARGS | METH_KEYWORDS,
   "Intersect two sorted numpy arrays."},
   {NULL, NULL, 0, NULL}  // Sentinel
 };
