@@ -1,7 +1,3 @@
-WARNING: The current implementation is still in the research-and-development
-phase.
-
-# About
 Numpy and Numpy arrays are a really great tool. However intersecting and
 merging multiple numpy arrays rather less performant. The current numpy
 implementation concatenates the two arrays and sorts the combination. If you
@@ -101,7 +97,7 @@ The first two tests study the dependence of the arrays size. In the last test
 of consecutive integers except the first array. The average step between two
 items in the first array is varied in this scenario.  
 
-# Intersect
+## Intersect
 
 ### Assume sorted arrays
 The following table summarizes the performance compared to numpy if one ignores
@@ -151,7 +147,7 @@ the time it takes to sort the initial arrays into account.
   </tr>
 </table>
 
-# Merge
+## Merge
 <table>
   <tr>
     <th>Assume sorted</th>
