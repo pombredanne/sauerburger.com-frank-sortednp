@@ -3,8 +3,6 @@
 
 #include "sortednpmodule.h"
 
-#define SEARCH_METHOD galloping_search
-
 /**
  * Internal helper method.
  *
@@ -20,7 +18,6 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
   npy_intp len_a = PyArray_DIMS(a_array)[0];
   npy_intp len_b = PyArray_DIMS(b_array)[0];
   npy_intp new_dim[1] = {len_a < len_b ? len_a : len_b};
-
 
 
   // Select the search function now and not during each look iteration.
@@ -167,13 +164,13 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   // Parse algorithm argument
   method_t search_method;
   switch (algorithm) {
-    case -1:  // default value
     case 1:
       search_method = SIMPLE;
       break;
     case 2:
       search_method = BINARY;
       break;
+    case -1:  // default value
     case 3:
       search_method = GALLOPPING;
       break;
