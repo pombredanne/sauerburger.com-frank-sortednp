@@ -16,7 +16,7 @@ cxx-lint: *.cpp *.h
 	
 	
 python-lint: setup.py benchmark.py sortednp/*.py
-	pylint --disable=e0611,e1101 $^
+	pylint --disable=e0611,e1101,r0903 $^
 
 python-based-test: sortednpmodule.cpp setup.py tests/*.py sortednp/*.py
 	$(PYTHON) setup.py test

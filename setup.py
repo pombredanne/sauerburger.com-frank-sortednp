@@ -20,7 +20,7 @@ class NumpyApiExtension(Extension):
         path.
         """
 
-        if name =="include_dirs":
+        if name == "include_dirs":
             try:
                 # Delayed import. Numpy should be installed by now.
                 import numpy
@@ -29,17 +29,17 @@ class NumpyApiExtension(Extension):
                 # package. Setuptools does not install the dependencies
                 # beforehand.
                 raise Exception("Please use 'pip3 install .' or install numpy "
-                    "manually before running this script.")
+                                "manually before running this script.")
 
             return [numpy.get_include()]
-        
+
         return super().__getattribute__(name)
-    
-        
+
+
 BACKEND = NumpyApiExtension('_sortednp', language='c++',
-                    extra_compile_args=['-g'],
-                    sources=['sortednpmodule.cpp'],
-                    depends=['numpy'])
+                            extra_compile_args=['-g'],
+                            sources=['sortednpmodule.cpp'],
+                            depends=['numpy'])
 
 setup(name='sortednp',
       version='0.0.0',
