@@ -35,18 +35,6 @@ class NumpyApiExtension(Extension):
 
         return super().__getattribute__(name)
 
-
-def load_intro(path="README.md"):
-    """
-    Load and return the first paragraph from the README file.
-    """
-    with open(path) as readme_file:
-        readme = readme_file.read()
-    end = readme.index("#", 1)
-
-    return readme[:end].strip()
-
-
 BACKEND = NumpyApiExtension('_sortednp', language='c++',
                             extra_compile_args=['-g'],
                             sources=['sortednpmodule.cpp'],
@@ -58,7 +46,6 @@ setup(name='sortednp',
       install_requires=['numpy>=1.7'],
       test_suite='tests',
       description='Merge and intersect sorted numpy arrays.',
-      long_description=load_intro(),
       url="https://gitlab.sauerburger.com/frank/sortednp",
       author="Frank Sauerburger",
       author_email="frank@sauerburger.com",
