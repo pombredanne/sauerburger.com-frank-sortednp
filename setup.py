@@ -28,8 +28,8 @@ class NumpyApiExtension(Extension):
                 # The above import fails, if setuptools is used to install the
                 # package. Setuptools does not install the dependencies
                 # beforehand.
-                raise Exception("Please use 'pip3 install .' or install numpy "
-                                "manually before running this script.")
+                raise Exception("Rerun the previous pip command or install "
+                                "numpy manually before running this script.")
 
             return [numpy.get_include()]
 

@@ -69,6 +69,7 @@ benchmark:
 
 benchmark_quick:
   stage: final
+  when: manual
   tags:
    - high-mem
   script:
@@ -84,15 +85,16 @@ benchmark_quick:
 
 ################################################################################
 # Deploy
-pypi_deploy:
+deploy:
   stage: final
   before_script:
-    - pip install twine numpy
+    - pip install numpy wheel
     - apt-get update
     - apt-get install -y pandoc gnupg2
   script:
     - pandoc -f markdown -t rst -o README.rst README.md
     - python3 setup.py sdist
+    - python3 setup.py bdist_wheel
 
   artifacts:
     expire_in: 1 day
