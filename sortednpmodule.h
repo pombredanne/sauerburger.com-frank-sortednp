@@ -6,7 +6,7 @@
 
 #include <Python.h>
 
-#define NPY_NO_DEPRECATED_API NPY_1_12_API_VERSION
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
 enum method_t {SIMPLE, BINARY, GALLOPPING};
