@@ -86,7 +86,6 @@ benchmark_quick:
 # Deploy
 pypi_deploy:
   stage: final
-  when: manual
   before_script:
     - pip install twine numpy
     - apt-get update
