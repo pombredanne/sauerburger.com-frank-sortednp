@@ -109,7 +109,6 @@ sdist:
   dependencies:
     - readme
   script:
-    - pandoc -f markdown -t rst -o README.rst README.md
     - python3 setup.py sdist
     - mv dist/* .
 
@@ -125,7 +124,6 @@ bdist_64bit:
   dependencies:
     - readme
   script:
-    - pandoc -f markdown -t rst -o README.rst README.md
     - /opt/python/cp34-cp34m/bin/pip install -r requirements.txt
     - /opt/python/cp35-cp35m/bin/pip install -r requirements.txt
     - /opt/python/cp36-cp36m/bin/pip install -r requirements.txt
@@ -145,7 +143,6 @@ bdist_32bit:
   dependencies:
     - readme
   script:
-    - pandoc -f markdown -t rst -o README.rst README.md
     - /opt/python/cp34-cp34m/bin/pip install -r requirements.txt
     - /opt/python/cp35-cp35m/bin/pip install -r requirements.txt
     - /opt/python/cp36-cp36m/bin/pip install -r requirements.txt
