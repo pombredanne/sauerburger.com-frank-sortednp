@@ -7,7 +7,7 @@ before_script:
 stages:
   - test
   - lint
-  - benchmark
+  - final
 
 ################################################################################
 # Tests
@@ -53,7 +53,7 @@ pylint:
 ################################################################################
 # Benchmark
 benchmark:
-  stage: benchmark
+  stage: final
   tags:
    - high-mem
   only:
@@ -68,7 +68,7 @@ benchmark:
      - "bm_*.png"
 
 benchmark_quick:
-  stage: benchmark
+  stage: final
   tags:
    - high-mem
   script:
@@ -81,3 +81,21 @@ benchmark_quick:
     paths:
      - "bm_*.png"
     
+
+################################################################################
+# Deploy
+pypi_deploy:
+  stage: final
+  when: manual
+  before_script:
+    - pip install twine numpy
+    - apt-get update
+    - apt-get install -y pandoc gnupg2
+  script:
+    - pandoc -f markdown -t rst -o README.rst README.md
+    - python3 setup.py sdist
+
+  artifacts:
+    expire_in: 1 day
+    paths:
+     - "dist/*"
