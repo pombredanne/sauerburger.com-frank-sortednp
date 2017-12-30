@@ -7,7 +7,9 @@ before_script:
 stages:
   - test
   - lint
-  - final
+  - postprocressing
+  - deploy
+  - benchmark
 
 ################################################################################
 # Tests
@@ -53,7 +55,7 @@ pylint:
 ################################################################################
 # Benchmark
 benchmark:
-  stage: final
+  stage: benchmark
   tags:
    - high-mem
   only:
@@ -68,7 +70,7 @@ benchmark:
      - "bm_*.png"
 
 benchmark_quick:
-  stage: final
+  stage: benchmark
   when: manual
   tags:
    - high-mem
@@ -84,19 +86,76 @@ benchmark_quick:
     
 
 ################################################################################
-# Deploy
-deploy:
-  stage: final
+# Post-procressing
+
+readme:
+  stage: postprocressing
   before_script:
-    - pip install numpy wheel
     - apt-get update
-    - apt-get install -y pandoc gnupg2
+    - apt-get install -y pandoc
+  script:
+    - pandoc -f markdown -t rst -o README.rst README.md
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "README.rst"
+
+################################################################################
+# Deploy
+sdist:
+  stage: deploy
+  before_script: []
+  dependencies:
+    - readme
   script:
     - pandoc -f markdown -t rst -o README.rst README.md
     - python3 setup.py sdist
-    - python3 setup.py bdist_wheel
+    - mv dist/* .
 
   artifacts:
-    expire_in: 1 day
+    expire_in: 1 week
     paths:
-     - "dist/*"
+     - "sortednp-*.tar.gz"
+
+bdist_64bit:
+  image: quay.io/pypa/manylinux1_x86_64
+  stage: deploy
+  before_script: []
+  dependencies:
+    - readme
+  script:
+    - pandoc -f markdown -t rst -o README.rst README.md
+    - /opt/python/cp34-cp34m/bin/pip install -r requirements.txt
+    - /opt/python/cp35-cp35m/bin/pip install -r requirements.txt
+    - /opt/python/cp36-cp36m/bin/pip install -r requirements.txt
+    - /opt/python/cp34-cp34m/bin/pip wheel .
+    - /opt/python/cp35-cp35m/bin/pip wheel .
+    - /opt/python/cp36-cp36m/bin/pip wheel .
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "sortednp-*.whl"
+
+bdist_32bit:
+  image: quay.io/pypa/manylinux1_i686
+  stage: deploy
+  before_script: []
+  dependencies:
+    - readme
+  script:
+    - pandoc -f markdown -t rst -o README.rst README.md
+    - /opt/python/cp34-cp34m/bin/pip install -r requirements.txt
+    - /opt/python/cp35-cp35m/bin/pip install -r requirements.txt
+    - /opt/python/cp36-cp36m/bin/pip install -r requirements.txt
+    - /opt/python/cp34-cp34m/bin/pip wheel .
+    - /opt/python/cp35-cp35m/bin/pip wheel .
+    - /opt/python/cp36-cp36m/bin/pip wheel .
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "sortednp-*.whl"
+
+
