@@ -20,17 +20,27 @@ time. This package implements methods to merge and intersect multiple arrays,
 which can be loaded on-demand.
 
 # Installation
+There are two different methods to install `sortednp`.
 
-You can install the package by cloning the git repository and running the
-setup script.
+## Using `pip` (recommended)
 
-<!-- console
-$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
-$ cd sortednp && python3 setup.py install
--->
+You can install the package by cloning the git repository and instruct `pip`
+(here `pip3`) to install the local checkout.
 
 ```bash
-$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git
+$ cd sortednp && pip3 install .
+```
+
+## Using `setuptools`
+
+Alternatively, you can clone the git repository and run the
+setup script. Please note that numpy must be installed before running
+`setup.py`.
+
+```bash
+$ pip install numpy  # or ensure that numpy is installed
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git
 $ cd sortednp && python3 setup.py install
 ```
 

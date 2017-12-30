@@ -1,8 +1,8 @@
 image: python:3
 
 before_script:
- - pip install doxec numpy
- - python3 setup.py install
+ - pip install .
+ - pip install doxec 
 
 stages:
   - test
@@ -26,6 +26,15 @@ cxxtest:
   script:
     - make install-gtest
     - make cxx-based-test
+
+alternative_install:
+    stage: test
+    before_script: []
+    script:
+     - pip install numpy
+     - python3 setup.py install
+     - python3 -c 'import sortednp'
+    
 
 ################################################################################
 # Lint
