@@ -6,7 +6,7 @@ if [ -z "${PY_VERSION}" ]; then
 	exit 1
 fi
 
-PYTHON=/opt/python/${PY_VERSION}/bin/python
+PYTHON=/opt/python/${PY_VERSION}/bin/python3
 NUMPY=$(${PYTHON} -c "import numpy; print(numpy.get_include())")
 GTEST="/usr/local/include/gtest"
 
@@ -16,7 +16,7 @@ g++ -c cxxtest.cpp -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conve
 
 # link
 unzip -n wheelhouse/sortednp-*-${PY_VERSION}-*.whl
-g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest _sortednp-*.so -o cxxtest
+g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest _sortednp*.so -o cxxtest
 
 # run
 ./cxxtest
