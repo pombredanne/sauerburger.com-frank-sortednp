@@ -37,15 +37,15 @@ readme.rst:
   artifacts:
     expire_in: 1 week
     paths:
-     - "wheelhouse/*"
+     - "wheelhouse/sortednp-*"
 
 bdist:64bit:
   <<: *bdist_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
 
 bdist:32bit:
   <<: *bdist_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
 
 sdist:
   stage: build
@@ -209,7 +209,7 @@ source_install:tar:
   dependencies:
     - sdist
   script:
-    - pip3 install dist/sorted-*.tar.gz
+    - pip3 install dist/sortednp-*.tar.gz
     - ci/pytest.sh
 
 ################################################################################
