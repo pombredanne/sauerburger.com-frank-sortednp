@@ -7,9 +7,10 @@ if [ -z "${PY_VERSION}" ]; then
 fi
 
 PYTHON=/opt/python/${PY_VERSION}/bin/python3
-NUMPY=$(${PYTHON} -c "import numpy; print(numpy.get_include())")
 GTEST="/usr/local/include/gtest"
 
+/opt/python/${PY_VERSION}/bin/pip install -r requirements.txt
+NUMPY=$(${PYTHON} -c "import numpy; print(numpy.get_include())")
 
 # compile
 g++ -c cxxtest.cpp -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conversion-null -o cxxtest.o
