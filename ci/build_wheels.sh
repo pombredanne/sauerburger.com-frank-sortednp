@@ -7,6 +7,6 @@ if [ -z "${PYTHON_VERSIONS}" ]; then
 fi
 
 for PY_VERSION in "${PYTHON_VERSIONS}"; do
-	/opt/${PY_VERSION}/bin/pip install -r requirements.txt
-	/opt/${PY_VERSION}/bin/pip wheel -w wheelhouse/ .
+	/opt/python/${PY_VERSION}/bin/pip install -r requirements.txt
+	/opt/python/${PY_VERSION}/bin/pip wheel -w wheelhouse/ .
 done
