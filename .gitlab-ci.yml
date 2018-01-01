@@ -8,13 +8,16 @@ variables:
 stages:
   - preprocess
   - build
+  - test
+  - lint
+  - benchmark
     
 ################################################################################
 # Pre-Process
-readme:
+readme.rst:
   image: ${CI_REGISTRY_IMAGE}/pandoc
   stage: preprocess
-  before_script:
+  script:
     - pandoc -f markdown -t rst -o README.rst README.md
 
   artifacts:
@@ -25,19 +28,16 @@ readme:
 ################################################################################
 # Build
 
-# template
 .bdist:base: &bdist_template
   stage: build
   dependencies:
-    - readme
+    - readme.rst
   script:
     - ci/build_wheels.sh
-
   artifacts:
     expire_in: 1 week
     paths:
      - "wheelhouse/*"
-    
 
 bdist:64bit:
   <<: *bdist_template
@@ -46,6 +46,19 @@ bdist:64bit:
 bdist:32bit:
   <<: *bdist_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+
+sdist:
+  stage: build
+  image: python:3
+  dependencies:
+    - readme.rst
+  script:
+    - ci/build_tar.sh
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "dist/*"
+    
 
 ################################################################################
 # Tests
@@ -59,7 +72,7 @@ bdist:32bit:
     - ci/pytest_wheel.sh
 
 pythontest:py34_32bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -67,7 +80,7 @@ pythontest:py34_32bit:
     PY_VERSION: cp34-cp34m
 
 pythontest:py35_32bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -75,7 +88,7 @@ pythontest:py35_32bit:
     PY_VERSION: cp35-cp35m
 
 pythontest:py36_32bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -84,7 +97,7 @@ pythontest:py36_32bit:
 
 
 pythontest:py34_64bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -92,7 +105,7 @@ pythontest:py34_64bit:
     PY_VERSION: cp34-cp34m
 
 pythontest:py35_64bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -100,7 +113,7 @@ pythontest:py35_64bit:
     PY_VERSION: cp35-cp35m
 
 pythontest:py36_64bit:
-  <<: &pythontest_template
+  <<: *pythontest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -114,7 +127,7 @@ pythontest:py36_64bit:
     - ci/cxxtest_wheel.sh
 
 cxxtest:py34_32bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -122,7 +135,7 @@ cxxtest:py34_32bit:
     PY_VERSION: cp34-cp34m
 
 cxxtest:py35_32bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -130,7 +143,7 @@ cxxtest:py35_32bit:
     PY_VERSION: cp35-cp35m
 
 cxxtest:py36_32bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
   dependencies:
     - bdist:32bit
@@ -139,7 +152,7 @@ cxxtest:py36_32bit:
 
 
 cxxtest:py34_64bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -147,7 +160,7 @@ cxxtest:py34_64bit:
     PY_VERSION: cp34-cp34m
 
 cxxtest:py35_64bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -155,7 +168,7 @@ cxxtest:py35_64bit:
     PY_VERSION: cp35-cp35m
 
 cxxtest:py36_64bit:
-  <<: &cxxtest_template
+  <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
   dependencies:
     - bdist:64bit
@@ -176,7 +189,7 @@ readme_test:
 .source_install:base: &source_install_template
   stage: test
   image: python:3
-  berfore_script:
+  before_script:
     - pip3 install -r requirements.txt
 
 source_install:pip:
@@ -189,6 +202,14 @@ source_install:setuppy:
   <<: *source_install_template
   script:
     - python3 setup.py install
+    - ci/pytest.sh
+
+source_install:tar:
+  <<: *source_install_template
+  dependencies:
+    - sdist
+  script:
+    - pip3 install dist/sorted-*.tar.gz
     - ci/pytest.sh
 
 ################################################################################
