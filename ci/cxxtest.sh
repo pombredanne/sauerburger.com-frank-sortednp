@@ -10,7 +10,7 @@ g++ -c cxxtest.cpp -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conve
 python3 setup.py build
 
 # link
-g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest build/lib.*/_sortednp-*.so -o cxxtest
+g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest build/lib.*/_sortednp*.so -o cxxtest
 
 # run
 ./cxxtest
