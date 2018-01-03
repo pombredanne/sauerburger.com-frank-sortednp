@@ -41,11 +41,11 @@ readme.rst:
 
 bdist:64bit:
   <<: *bdist_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
 
 bdist:32bit:
   <<: *bdist_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
 
 sdist:
   stage: build
@@ -73,7 +73,7 @@ sdist:
 
 pythontest:py34_32bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -81,7 +81,7 @@ pythontest:py34_32bit:
 
 pythontest:py35_32bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -89,7 +89,7 @@ pythontest:py35_32bit:
 
 pythontest:py36_32bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -98,7 +98,7 @@ pythontest:py36_32bit:
 
 pythontest:py34_64bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
   dependencies:
     - bdist:64bit
   variables:
@@ -106,7 +106,7 @@ pythontest:py34_64bit:
 
 pythontest:py35_64bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
   dependencies:
     - bdist:64bit
   variables:
@@ -114,7 +114,7 @@ pythontest:py35_64bit:
 
 pythontest:py36_64bit:
   <<: *pythontest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
   dependencies:
     - bdist:64bit
   variables:
@@ -128,7 +128,7 @@ pythontest:py36_64bit:
 
 cxxtest:py34_32bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -136,7 +136,7 @@ cxxtest:py34_32bit:
 
 cxxtest:py35_32bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -144,7 +144,7 @@ cxxtest:py35_32bit:
 
 cxxtest:py36_32bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux32_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
   dependencies:
     - bdist:32bit
   variables:
@@ -153,7 +153,7 @@ cxxtest:py36_32bit:
 
 cxxtest:py34_64bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
   dependencies:
     - bdist:64bit
   variables:
@@ -161,7 +161,7 @@ cxxtest:py34_64bit:
 
 cxxtest:py35_64bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
   dependencies:
     - bdist:64bit
   variables:
@@ -169,7 +169,7 @@ cxxtest:py35_64bit:
 
 cxxtest:py36_64bit:
   <<: *cxxtest_template
-  image: ${CI_REGISTRY_IMAGE}/manylinux64_gtest
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
   dependencies:
     - bdist:64bit
   variables:
