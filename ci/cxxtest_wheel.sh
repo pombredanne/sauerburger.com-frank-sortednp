@@ -20,4 +20,4 @@ unzip -n wheelhouse/sortednp-*-${PY_VERSION}-*.whl
 g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest _sortednp*.so -o cxxtest
 
 # run
-./cxxtest
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(pwd) ./cxxtest
