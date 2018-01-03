@@ -231,34 +231,33 @@ pylint:
 
 ################################################################################
 # Benchmark
-benchmark:
+.benchmark:base: &benchmark_template
   image: python:3
   stage: benchmark
   tags:
    - high-mem
-  only:
-    - master
   script:
    - pip install matplotlib
-   - make benchmark -j2
+   - ci/benchmark.sh
 
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "bm_*.png"
+
+benchmark:
+  <<: *benchmark_template
+  only:
+    - master
   artifacts:
     expire_in: 6 mos
     paths:
      - "bm_*.png"
 
 benchmark_quick:
-  image: python:3
-  stage: benchmark
+  <<: *benchmark_template
+  variables:
+    QUICK: "true"
   when: manual
-  tags:
-   - high-mem
-  script:
-   - pip install matplotlib
-   - QUICK='--quick' make benchmark -j2
   except:
     - master
-  artifacts:
-    expire_in: 1 week
-    paths:
-     - "bm_*.png"
