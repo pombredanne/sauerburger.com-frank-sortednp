@@ -225,7 +225,8 @@ pylint:
   image: python:3
   stage: lint
   script:
-    - pip install pylint numpy
+    - pip install pylint numpy matplotlib 
+    - pip install .
     - ci/pylint.sh
 
 ################################################################################
