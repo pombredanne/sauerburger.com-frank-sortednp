@@ -1,0 +1,3 @@
+[submodule "ci/python_build"]
+	path = ci/python_build
+	url = https://gitlab.sauerburger.com/frank/python_build.git
