@@ -7,6 +7,7 @@ if [ -z "${PY_VERSION}" ]; then
 fi
 
 /opt/python/${PY_VERSION}/bin/pip install wheel wheelhouse/sortednp-*-${PY_VERSION}-*.whl
+cd /
 
 /opt/python/${PY_VERSION}/bin/pip install nose
-/opt/python/${PY_VERSION}/bin/nosetests sortednp/tests
+/opt/python/${PY_VERSION}/bin/nosetests sortednp.tests

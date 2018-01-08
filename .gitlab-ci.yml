@@ -66,8 +66,6 @@ sdist:
 #### Python tests
 .pythontest:base: &pythontest_template
   stage: test
-  variables:
-    GIT_STRATEGY: none
   script:
     - ci/pytest_wheel.sh
 
