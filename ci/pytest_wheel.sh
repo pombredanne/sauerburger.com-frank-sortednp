@@ -9,7 +9,6 @@ fi
 /opt/python/${PY_VERSION}/bin/pip install wheel wheelhouse/sortednp-*-${PY_VERSION}-*.whl
 pwd
 ls -la
-cd /
 
 
 /opt/python/${PY_VERSION}/bin/pip install nose
