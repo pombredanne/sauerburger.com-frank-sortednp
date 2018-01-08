@@ -29,7 +29,9 @@ You can install the package by cloning the git repository and instruct `pip`
 
 ```bash
 $ git clone https://gitlab.sauerburger.com/frank/sortednp.git
-$ cd sortednp && pip3 install .
+$ cd sortednp 
+$ pip3 install -r requirements.txt  # or ensure that numpy is installed
+$ pip3 install .
 ```
 
 ## Using `setuptools`
@@ -39,9 +41,10 @@ setup script. Please note that numpy must be installed before running
 `setup.py`.
 
 ```bash
-$ pip install numpy  # or ensure that numpy is installed
 $ git clone https://gitlab.sauerburger.com/frank/sortednp.git
-$ cd sortednp && python3 setup.py install
+$ cd sortednp
+$ pip3 install -r requirements.txt  # or ensure that numpy is installed
+$ python3 setup.py install
 ```
 
 # Usage
