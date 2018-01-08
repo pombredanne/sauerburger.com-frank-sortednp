@@ -13,7 +13,7 @@ GTEST="/usr/local/include/gtest"
 NUMPY=$(${PYTHON} -c "import numpy; print(numpy.get_include())")
 
 # compile
-g++ -c cxxtest.cpp -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conversion-null -o cxxtest.o
+g++ -c ci/cxxtest.cpp -I src -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conversion-null -o cxxtest.o
 
 # link
 unzip -j wheelhouse/sortednp-*-${PY_VERSION}-*.whl "sortednp/_internal.*.so"

@@ -56,12 +56,13 @@ def load_long_description(*filenames, paragraphs=2):
 
 BACKEND = NumpyApiExtension('sortednp._internal', language='c++',
                             extra_compile_args=['-g'],
-                            sources=['sortednpmodule.cpp'],
+                            sources=['src/sortednpmodule.cpp'],
                             depends=['numpy'])
 
 setup(name='sortednp',
       version='0.0.0',
       packages=["sortednp", "sortednp.tests"],
+      package_dir={"": "src"},
       install_requires=['numpy>=1.7'],
       test_suite='sortednp.tests',
       description='Merge and intersect sorted numpy arrays.',
