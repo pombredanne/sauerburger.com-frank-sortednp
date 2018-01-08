@@ -9,4 +9,4 @@ fi
 /opt/python/${PY_VERSION}/bin/pip install wheel wheelhouse/sortednp-*-${PY_VERSION}-*.whl
 
 /opt/python/${PY_VERSION}/bin/pip install nose
-/opt/python/${PY_VERSION}/bin/nosetests sortednp.tests
+/opt/python/${PY_VERSION}/bin/nosetests -P sortednp.tests
