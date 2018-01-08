@@ -52,6 +52,8 @@ setup(name='sortednp',
       keywords="merge intersect sorted numpy",
       license="MIT",
       python_requires='>=3',
-      classifiers=[],
-
+      classifiers=["Intended Audience :: Developers",
+                   "License :: OSI Approved :: MIT License",
+                   "Programming Language :: Python :: 3 :: Only",
+                   "Programming Language :: C"],
       ext_modules=[BACKEND])
