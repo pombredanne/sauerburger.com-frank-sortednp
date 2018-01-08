@@ -6,7 +6,7 @@ also sorted.
 """
 
 
-from _sortednp import merge, intersect
+from sortednp._internal import merge, intersect
 
 
 SIMPLE_SEARCH = 1

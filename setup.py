@@ -35,7 +35,26 @@ class NumpyApiExtension(Extension):
 
         return super().__getattribute__(name)
 
-BACKEND = NumpyApiExtension('_sortednp', language='c++',
+
+def load_long_description(*filenames, paragraphs=2):
+    """
+    Try to load the two paragraph from any of the given file. If none of the
+    files could be opened, return None.
+    """
+    for filename in filenames:
+        try:
+            with open(filename) as readme_file:
+                content = readme_file.read()
+
+            paragraph = "\n\n".join(content.split("\n\n")[0:paragraphs])
+            return paragraph
+
+        except FileNotFoundError as _:
+            pass
+
+    return None
+
+BACKEND = NumpyApiExtension('sortednp._internal', language='c++',
                             extra_compile_args=['-g'],
                             sources=['sortednpmodule.cpp'],
                             depends=['numpy'])
@@ -46,12 +65,14 @@ setup(name='sortednp',
       install_requires=['numpy>=1.7'],
       test_suite='sortednp.tests',
       description='Merge and intersect sorted numpy arrays.',
+      long_description=load_long_description("README.rst", "README.md"),
       url="https://gitlab.sauerburger.com/frank/sortednp",
       author="Frank Sauerburger",
       author_email="frank@sauerburger.com",
       keywords="merge intersect sorted numpy",
       license="MIT",
       python_requires='>=3',
+      platforms=["Linux", "Unix"],
       classifiers=["Intended Audience :: Developers",
                    "License :: OSI Approved :: MIT License",
                    "Programming Language :: Python :: 3 :: Only",

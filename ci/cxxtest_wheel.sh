@@ -16,8 +16,8 @@ NUMPY=$(${PYTHON} -c "import numpy; print(numpy.get_include())")
 g++ -c cxxtest.cpp -I${NUMPY} $(${PYTHON}-config --cflags) -I${GTEST} -Wno-conversion-null -o cxxtest.o
 
 # link
-unzip -n wheelhouse/sortednp-*-${PY_VERSION}-*.whl
-g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest _sortednp*.so -o cxxtest
+unzip -j wheelhouse/sortednp-*-${PY_VERSION}-*.whl sortednp/_internal.cpython-34m.so
+g++  cxxtest.o $(${PYTHON}-config --ldflags) -lgtest _internal*.so -o cxxtest
 
 # run
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(pwd) ./cxxtest
