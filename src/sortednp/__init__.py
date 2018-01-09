@@ -5,9 +5,9 @@ and merging sorted numpy arrays. The returned intersections and unions are
 also sorted.
 """
 
-
 from sortednp._internal import merge, intersect
 
+__version__ = "0.1.0rc1"
 
 SIMPLE_SEARCH = 1
 BINARY_SEARCH = 2
