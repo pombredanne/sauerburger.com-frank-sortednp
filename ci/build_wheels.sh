@@ -10,3 +10,8 @@ for PY_VERSION in ${PYTHON_VERSIONS}; do
 	/opt/python/${PY_VERSION}/bin/pip install -r requirements.txt
 	/opt/python/${PY_VERSION}/bin/pip wheel -w wheelhouse/ .
 done
+
+# Convert linux platform tags to manylinux
+for whl in wheelhouse/*.whl; do
+    auditwheel repair "$whl"
+done

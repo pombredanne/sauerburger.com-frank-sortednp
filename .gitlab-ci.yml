@@ -38,7 +38,7 @@ readme.rst:
   artifacts:
     expire_in: 1 week
     paths:
-     - "wheelhouse/sortednp-*"
+     - "wheelhouse/sortednp-*manylinux*"
 
 bdist:64bit:
   <<: *bdist_template
