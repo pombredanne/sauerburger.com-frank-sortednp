@@ -11,6 +11,7 @@ stages:
   - test
   - lint
   - benchmark
+  - deploy
     
 ################################################################################
 # Pre-Process
@@ -262,3 +263,30 @@ benchmark_quick:
   when: manual
   except:
     - master
+
+################################################################################
+# Deploy
+
+.pypi:base: &pypi_template
+  stage: deploy
+  dependencies:
+    - bdist:64bit
+    - bdist:32bit
+    - sdist
+  when: manual
+  image: python:3
+  script:
+    - ci/deploy.sh
+
+pypi_test:
+  <<:  *pypi_template
+  environment:
+    name: PyPI Test
+  variables:
+    TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/ 
+
+pypi_test:
+  <<:  *pypi_template
+  environment:
+    name: PyPI
+
