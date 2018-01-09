@@ -1,8 +1,8 @@
 // Copyright (C) 2016, Frank Sauerburger
 // Sortednp module
 
-#ifndef SORTEDNPMODULE_H_
-#define SORTEDNPMODULE_H_
+#ifndef SRC_SORTEDNPMODULE_H_
+#define SRC_SORTEDNPMODULE_H_
 
 #include <Python.h>
 
@@ -145,4 +145,4 @@ PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array);
 PyObject* sortednp_merge(PyObject *self, PyObject *args);
 
 
-#endif  // SORTEDNPMODULE_H_
+#endif  // SRC_SORTEDNPMODULE_H_
