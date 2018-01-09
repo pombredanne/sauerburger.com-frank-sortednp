@@ -7,6 +7,7 @@ if [ -z "${PYTHON_VERSIONS}" ]; then
 fi
 
 for PY_VERSION in ${PYTHON_VERSIONS}; do
+	/opt/python/${PY_VERSION}/bin/pip install numpy==1.14
 	/opt/python/${PY_VERSION}/bin/pip install -r requirements.txt
 	/opt/python/${PY_VERSION}/bin/pip wheel -w wheelhouse/ .
 done
