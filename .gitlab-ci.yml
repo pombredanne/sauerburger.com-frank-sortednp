@@ -285,7 +285,7 @@ pypi_test:
   variables:
     TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/ 
 
-pypi_test:
+pypi:
   <<:  *pypi_template
   environment:
     name: PyPI
