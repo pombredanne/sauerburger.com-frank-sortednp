@@ -14,7 +14,7 @@ in particular.
 
 It is also possible to implement a k-way merging or intersecting algorithm,
 which operates on an arbitrary number of arrays at the same time. This package
-is intended to deal with arrays with $`10^6`$ or $`10^10`$ items. Usually, these
+is intended to deal with arrays with $`10^6`$ or $`10^{10}`$ items. Usually, these
 arrays are too large to keep more than two of them in memory at the same
 time. This package implements methods to merge and intersect multiple arrays,
 which can be loaded on-demand.
