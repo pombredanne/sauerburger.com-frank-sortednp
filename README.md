@@ -14,24 +14,37 @@ in particular.
 
 It is also possible to implement a k-way merging or intersecting algorithm,
 which operates on an arbitrary number of arrays at the same time. This package
-is intended to deal with arrays with $`10^6`$ or $`10^10`$ items. Usually, these
+is intended to deal with arrays with $`10^6`$ or $`10^{10}`$ items. Usually, these
 arrays are too large to keep more than two of them in memory at the same
 time. This package implements methods to merge and intersect multiple arrays,
 which can be loaded on-demand.
 
 # Installation
+There are two different methods to install `sortednp`.
 
-You can install the package by cloning the git repository and running the
-setup script.
+## Using `pip` (recommended)
 
-<!-- console
-$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
-$ cd sortednp && python3 setup.py install
--->
+You can install the package by cloning the git repository and instruct `pip`
+(here `pip3`) to install the local checkout.
 
 ```bash
-$ git clone https://gitlab.sauerburger.com/frank/sortednp.git sortednp
-$ cd sortednp && python3 setup.py install
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git
+$ cd sortednp 
+$ pip3 install -r requirements.txt  # or ensure that numpy is installed
+$ pip3 install .
+```
+
+## Using `setuptools`
+
+Alternatively, you can clone the git repository and run the
+setup script. Please note that numpy must be installed before running
+`setup.py`.
+
+```bash
+$ git clone https://gitlab.sauerburger.com/frank/sortednp.git
+$ cd sortednp
+$ pip3 install -r requirements.txt  # or ensure that numpy is installed
+$ python3 setup.py install
 ```
 
 # Usage

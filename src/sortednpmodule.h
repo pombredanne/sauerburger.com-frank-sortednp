@@ -1,12 +1,15 @@
 // Copyright (C) 2016, Frank Sauerburger
 // Sortednp module
 
-#ifndef SORTEDNPMODULE_H_
-#define SORTEDNPMODULE_H_
+#ifndef SRC_SORTEDNPMODULE_H_
+#define SRC_SORTEDNPMODULE_H_
 
 #include <Python.h>
 
-#define NPY_NO_DEPRECATED_API NPY_1_12_API_VERSION
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
+
 #include <numpy/arrayobject.h>
 
 enum method_t {SIMPLE, BINARY, GALLOPPING};
@@ -142,4 +145,4 @@ PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array);
 PyObject* sortednp_merge(PyObject *self, PyObject *args);
 
 
-#endif  // SORTEDNPMODULE_H_
+#endif  // SRC_SORTEDNPMODULE_H_

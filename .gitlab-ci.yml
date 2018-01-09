@@ -1,74 +1,292 @@
-image: python:3
 
-before_script:
- - pip install doxec numpy
- - python3 setup.py install
+variables:
+  # This string is used in a bash for loop, to glob the python paths in
+  # pypa/manylinux images.
+  PYTHON_VERSIONS: "cp34-cp34m cp35-cp35m cp36-cp36m"
+    
 
 stages:
+  - preprocess
+  - build
   - test
   - lint
   - benchmark
+  - deploy
+    
+################################################################################
+# Pre-Process
+readme.rst:
+  image: ${CI_REGISTRY_IMAGE}/pandoc
+  stage: preprocess
+  script:
+    - pandoc -f markdown -t rst -o README.rst README.md
+
+  artifacts:
+    expire_in: 1 day
+    paths:
+     - "README.rst"
+
+################################################################################
+# Build
+
+.bdist:base: &bdist_template
+  stage: build
+  dependencies:
+    - readme.rst
+  script:
+    - ci/build_wheels.sh
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "wheelhouse/sortednp-*manylinux*"
+
+bdist:64bit:
+  <<: *bdist_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
+
+bdist:32bit:
+  <<: *bdist_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
+
+sdist:
+  stage: build
+  image: python:3
+  dependencies:
+    - readme.rst
+  script:
+    - ci/build_tar.sh
+  artifacts:
+    expire_in: 1 week
+    paths:
+     - "dist/*"
+    
 
 ################################################################################
 # Tests
-pythontest:
-  stage: test
-  script:
-    - make python-based-test
 
-README:
+#### Python tests
+.pythontest:base: &pythontest_template
   stage: test
   script:
+    - ci/pytest_wheel.sh
+
+pythontest:py34_32bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp34-cp34m
+
+pythontest:py35_32bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp35-cp35m
+
+pythontest:py36_32bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp36-cp36m
+
+
+pythontest:py34_64bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp34-cp34m
+
+pythontest:py35_64bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp35-cp35m
+
+pythontest:py36_64bit:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/manylinux_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp36-cp36m
+
+#### cxx test
+.cxxtest:base: &cxxtest_template
+  stage: test
+  script:
+    - ci/cxxtest_wheel.sh
+
+cxxtest:py34_32bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp34-cp34m
+
+cxxtest:py35_32bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp35-cp35m
+
+cxxtest:py36_32bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_i686
+  dependencies:
+    - bdist:32bit
+  variables:
+    PY_VERSION: cp36-cp36m
+
+
+cxxtest:py34_64bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp34-cp34m
+
+cxxtest:py35_64bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp35-cp35m
+
+cxxtest:py36_64bit:
+  <<: *cxxtest_template
+  image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64
+  dependencies:
+    - bdist:64bit
+  variables:
+    PY_VERSION: cp36-cp36m
+
+
+#### Doctest
+readme_test:
+  stage: test
+  image: ${CI_REGISTRY_IMAGE}/doxec
+  script:
+   - pip3 install -r requirements.txt
+   - pip3 install .
    - doxec README.md 
 
-cxxtest:
+#### Source install
+.source_install:base: &source_install_template
   stage: test
+  image: python:3
+  before_script:
+    - pip3 install -r requirements.txt
+
+source_install:pip:
+  <<: *source_install_template
   script:
-    - make install-gtest
-    - make cxx-based-test
+    - pip3 install .
+    - ci/pytest.sh
+
+source_install:setuppy:
+  <<: *source_install_template
+  script:
+    - python3 setup.py install
+    - ci/pytest.sh
+
+source_install:tar:
+  <<: *source_install_template
+  dependencies:
+    - sdist
+  script:
+    - pip3 install dist/sortednp-*.tar.gz
+    - ci/pytest.sh
 
 ################################################################################
 # Lint
 
 cpplint:
+  image: python:3
   stage: lint
   script:
-    - make cxx-lint
+    - ci/cxxlint.sh
 
 pylint:
+  image: python:3
   stage: lint
   script:
-    - pip install pylint matplotlib numpy
-    - make python-lint
+    - pip install pylint matplotlib 
+    - pip install -r requirements.txt
+    - pip install .
+    - ci/pylint.sh
 
 ################################################################################
 # Benchmark
-benchmark:
+.benchmark:base: &benchmark_template
+  image: python:3
   stage: benchmark
   tags:
-   - high-mem
-  only:
-    - master
+    - high-mem
   script:
-   - pip install matplotlib
-   - make benchmark -j2
+    - pip install matplotlib
+    - pip install -r requirements.txt
+    - pip install .
+    - ci/benchmark.sh
 
-  artifacts:
-    expire_in: 6 mos
-    paths:
-     - "bm_*.png"
-
-benchmark_quick:
-  stage: benchmark
-  tags:
-   - high-mem
-  script:
-   - pip install matplotlib
-   - QUICK='--quick' make benchmark -j2
-  except:
-    - master
   artifacts:
     expire_in: 1 week
     paths:
-     - "bm_*.png"
-    
+      - "bm_*.png"
+
+benchmark:
+  <<: *benchmark_template
+  only:
+    - master
+  artifacts:
+    expire_in: 6 mos
+    paths:
+      - "bm_*.png"
+
+benchmark_quick:
+  <<: *benchmark_template
+  variables:
+    QUICK: "true"
+  when: manual
+  except:
+    - master
+
+################################################################################
+# Deploy
+
+.pypi:base: &pypi_template
+  stage: deploy
+  dependencies:
+    - bdist:64bit
+    - bdist:32bit
+    - sdist
+  when: manual
+  image: python:3
+  script:
+    - ci/deploy.sh
+
+pypi_test:
+  <<:  *pypi_template
+  environment:
+    name: PyPI Test
+  variables:
+    TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/ 
+
+pypi:
+  <<:  *pypi_template
+  environment:
+    name: PyPI
+

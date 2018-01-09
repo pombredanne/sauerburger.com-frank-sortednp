@@ -1,0 +1,5 @@
+include src/sortednpmodule.cpp
+include src/sortednpmodule.h
+
+include LICENSE
+include README.rst
