@@ -211,6 +211,14 @@ source_install:tar:
     - pip3 install dist/sortednp-*.tar.gz
     - ci/pytest.sh
 
+
+#### Numpy version
+numpy_version_test:
+  <<: *pythontest_template
+  image: ${CI_REGISTRY_IMAGE}/numpy1_7
+  dependencies:
+    - bdist:64bit
+
 ################################################################################
 # Lint
 
