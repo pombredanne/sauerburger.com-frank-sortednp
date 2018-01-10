@@ -162,9 +162,8 @@ optional keyword argument `algorithm`.
    perform a binary search between the last two positions.
    [More Information](https://en.wikipedia.org/wiki/Exponential_search).
 
-The default is `sortednp.GALLOPING_SEARCH`.
-<!-- END-OF-RST -->
-The performance of all three algorithms is compared in the next section.
+The default is `sortednp.GALLOPING_SEARCH`. The performance of all three
+algorithms is compared in the next section.
 
 # Performance
 The performance of the package can be compared with the default implementation

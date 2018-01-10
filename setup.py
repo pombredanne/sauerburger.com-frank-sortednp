@@ -36,16 +36,18 @@ class NumpyApiExtension(Extension):
         return super().__getattribute__(name)
 
 
-def load_long_description(*filenames):
+def load_long_description(*filenames, paragraphs=2):
     """
-    Try to load any of the given file. If none of the files could be opened,
-    return None.
+    Try to load the two paragraph from any of the given file. If none of the
+    files could be opened, return None.
     """
     for filename in filenames:
         try:
             with open(filename) as readme_file:
                 content = readme_file.read()
-            return content
+
+            paragraph = "\n\n".join(content.split("\n\n")[0:paragraphs])
+            return paragraph
 
         except FileNotFoundError as _:
             pass

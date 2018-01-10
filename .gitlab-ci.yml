@@ -19,8 +19,7 @@ readme.rst:
   image: ${CI_REGISTRY_IMAGE}/pandoc
   stage: preprocess
   script:
-    - csplit README.md '/<!-- END-OF-RST -->/'
-    - pandoc -f markdown -t rst -o README.rst xx00
+    - pandoc -f markdown -t rst -o README.rst README.md
 
   artifacts:
     expire_in: 1 day
