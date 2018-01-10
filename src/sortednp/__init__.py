@@ -7,7 +7,7 @@ also sorted.
 
 from sortednp._internal import merge, intersect
 
-__version__ = "0.1.0rc2"
+__version__ = "0.1.0"
 
 SIMPLE_SEARCH = 1
 BINARY_SEARCH = 2

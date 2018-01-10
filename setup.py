@@ -58,7 +58,7 @@ BACKEND = NumpyApiExtension('sortednp._internal', language='c++',
                             depends=['numpy'])
 
 setup(name='sortednp',
-      version='0.1.0rc2',
+      version='0.1.0',
       packages=["sortednp", "sortednp.tests"],
       package_dir={"": "src"},
       install_requires=['numpy>=1.14'],
