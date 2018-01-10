@@ -24,28 +24,27 @@ There are two different methods to install `sortednp`.
 
 ## Using `pip` (recommended)
 
-You can install the package by cloning the git repository and instruct `pip`
-(here `pip3`) to install the local checkout.
+You can install the package directly from PyPI using `pip` (here `pip3`). There are
+pre-compiled wheels for `linux` 32- and 64bit.
 
 ```bash
-$ git clone https://gitlab.sauerburger.com/frank/sortednp.git
-$ cd sortednp 
-$ pip3 install -r requirements.txt  # or ensure that numpy is installed
-$ pip3 install .
+$ pip3 install sortednp
 ```
 
 ## Using `setuptools`
 
 Alternatively, you can clone the git repository and run the
-setup script. Please note that numpy must be installed before running
-`setup.py`.
+setup script.
 
 ```bash
 $ git clone https://gitlab.sauerburger.com/frank/sortednp.git
 $ cd sortednp
-$ pip3 install -r requirements.txt  # or ensure that numpy is installed
 $ python3 setup.py install
 ```
+## Numpy Dependency
+The installation fails in some cases, because of a build-time dependency on
+numpy. Usually, the problem can be solved by manually installing a recent numpy
+version via `pip3 install -U numpy`.
 
 # Usage
 
@@ -163,10 +162,8 @@ optional keyword argument `algorithm`.
    perform a binary search between the last two positions.
    [More Information](https://en.wikipedia.org/wiki/Exponential_search).
 
-The default is `sortednp.GALLOPING_SEARCH`. The performance of all three
-algorithms is compared in the next section.
-
-<!-- END-OF-RST -->
+The default is `sortednp.GALLOPING_SEARCH`. <!-- END-OF-RST -->
+The performance of all three algorithms is compared in the next section.
 
 # Performance
 The performance of the package can be compared with the default implementation
