@@ -166,6 +166,8 @@ optional keyword argument `algorithm`.
 The default is `sortednp.GALLOPING_SEARCH`. The performance of all three
 algorithms is compared in the next section.
 
+<!-- END-OF-RST -->
+
 # Performance
 The performance of the package can be compared with the default implementation
 of numpy. The ratio of the execution time between sortednp and numpy is
