@@ -36,7 +36,7 @@ class NumpyApiExtension(Extension):
         return super().__getattribute__(name)
 
 
-def load_long_description(*filenames)
+def load_long_description(*filenames):
     """
     Try to load any of the given file. If none of the files could be opened,
     return None.
