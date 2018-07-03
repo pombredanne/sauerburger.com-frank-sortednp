@@ -57,7 +57,7 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     indices_a = PyArray_SimpleNew(1, new_dim, NPY_INTP);
     if (indices_a == NULL) {
       // Probably a memory error occurred.
-      // TODO fix counter
+      // TODO(Frank): fix reference counter
       return NULL;
     }
     indices_a_array = reinterpret_cast<PyArrayObject*>(indices_a);
@@ -65,7 +65,7 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     indices_b = PyArray_SimpleNew(1, new_dim, NPY_INTP);
     if (indices_b == NULL) {
       // Probably a memory error occurred.
-      // TODO fix counter
+      // TODO(Frank): fix reference counter
       return NULL;
     }
     indices_b_array = reinterpret_cast<PyArrayObject*>(indices_b);
@@ -93,8 +93,10 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
       T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
       *t = v_a;
       if (indices != 0) {
-        npy_intp *t_a = reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_a_array, i_o));
-        npy_intp *t_b = reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_b_array, i_o));
+        npy_intp *t_a =
+          reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_a_array, i_o));
+        npy_intp *t_b =
+          reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_b_array, i_o));
 
         *t_a = i_a;
         *t_b = i_b;
@@ -453,9 +455,10 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
 PyMethodDef SortedNpMethods[] = {
   {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
   {"intersect",  (PyCFunction) sortednp_intersect, METH_VARARGS | METH_KEYWORDS,
-  "Intersect two sorted numpy arrays. If the optional argument indices is True, "
-  "the method will\r\n return a tuple of the format (intersection_array, "
-  "(indices_array_a, indices_array_b))."},
+    "Intersect two sorted numpy arrays. If the optional argument indices is "
+    "True, the method will\r\n return a tuple of the format "
+    "(intersection_array, (indices_array_a, indices_array_b))."
+  },
   {NULL, NULL, 0, NULL}  // Sentinel
 };
 
