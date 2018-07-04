@@ -101,6 +101,42 @@ array.
 $ python3 intersect.py
 [3 7]
 ```
+
+## Returning array indices
+The `intersect` method takes an optional argument `indices` which is `False`
+by default. If this is set to `True`, the return value consists of the
+intersection array and a tuple with the indices of the common values for both
+arrays.
+
+<!-- write intersect_indices.py -->
+```python
+# intersect_indices.py
+import numpy as np
+import sortednp as snp
+
+a = np.array([2,4,6,8,10])
+b = np.array([1,2,3,4])
+
+intersection, indices = snp.intersect(a,b, indices=True)
+
+print(intersection)
+print(indices)
+```
+
+The above example gives:
+<!-- console_output -->
+```python
+$ python3 intersect_indices.py
+[2 4]
+(array([0, 1]), array([1, 3]))
+```
+
+The first line shoes the regular intersection of the two arrays. The second line
+print a tuple with the indices of the values in the intersection. The number
+`2` can be found at position `0` in array `a` and at position `1` in array
+`b`. Similarly, the value `4` is at position `1` in array `a` and at position
+`3` in array `b`. 
+
 ## k-way methods
 Similarly, the k-way intersect and merge methods take two or more arrays and
 perform the merge or intersect operation on its arguments.

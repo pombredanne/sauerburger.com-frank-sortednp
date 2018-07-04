@@ -16,11 +16,11 @@ enum method_t {SIMPLE, BINARY, GALLOPPING};
 
 /**
  * Advance the pointer in order to find the given value in the sorted array.  If
- * the value if found, array index is at the first occurrence of value and false
- * is returned. If the given values is too small, the pointer is not advanced
- * and false is returned. If the given value is too large, the pointer is at the
- * last item of the array and true is returned. The than the search value, or
- * beyond the array limits.
+ * the value is found, the array index is at the first occurrence of the value
+ * and false is returned. If the given values smaller than any other value in
+ * the array, the pointer is not advanced and false is returned. If the given
+ * value is larger than any other value in the array, the pointer is at the
+ * last item of the array and true is returned.
  *
  * The return value is true, if the given value is too large to be in the array.
  * If the search is used in an intersection, true indicates the end of the

@@ -232,7 +232,7 @@ pylint:
   image: python:3.6
   stage: lint
   script:
-    - pip install pylint matplotlib 
+    - pip install pylint matplotlib
     - pip install -r requirements.txt
     - pip install .
     - ci/pylint.sh
