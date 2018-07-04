@@ -57,7 +57,9 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     indices_a = PyArray_SimpleNew(1, new_dim, NPY_INTP);
     if (indices_a == NULL) {
       // Probably a memory error occurred.
-      // TODO(Frank): fix reference counter
+      Py_XDECREF(out);
+
+      // Save to exit, intermediate objects deleted.
       return NULL;
     }
     indices_a_array = reinterpret_cast<PyArrayObject*>(indices_a);
@@ -65,7 +67,10 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     indices_b = PyArray_SimpleNew(1, new_dim, NPY_INTP);
     if (indices_b == NULL) {
       // Probably a memory error occurred.
-      // TODO(Frank): fix reference counter
+      Py_XDECREF(out);
+      Py_XDECREF(indices_a);
+
+      // Save to exit, intermediate objects deleted.
       return NULL;
     }
     indices_b_array = reinterpret_cast<PyArrayObject*>(indices_b);
