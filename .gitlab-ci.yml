@@ -229,7 +229,7 @@ cpplint:
     - ci/cxxlint.sh
 
 pylint:
-  image: python:3
+  image: python:3.6
   stage: lint
   script:
     - pip install pylint matplotlib 
