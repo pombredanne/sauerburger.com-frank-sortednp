@@ -164,7 +164,7 @@ cxxtest:py36_32bit:
   variables:
     PY_VERSION: cp36-cp36m
 
-cxxtest:py36_32bit:
+cxxtest:py37_32bit:
   <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/py_gtest_i686:3.7
   dependencies:
@@ -197,7 +197,7 @@ cxxtest:py36_64bit:
   variables:
     PY_VERSION: cp36-cp36m
 
-cxxtest:py36_64bit:
+cxxtest:py37_64bit:
   <<: *cxxtest_template
   image: ${CI_REGISTRY_IMAGE}/py_gtest_x86_64:3.7
   dependencies:
