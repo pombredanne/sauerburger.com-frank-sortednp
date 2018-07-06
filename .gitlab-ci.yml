@@ -6,33 +6,18 @@ variables:
     
 
 stages:
-  - preprocess
   - build
   - test
   - lint
   - benchmark
   - deploy
     
-################################################################################
-# Pre-Process
-readme.rst:
-  image: ${CI_REGISTRY_IMAGE}/pandoc
-  stage: preprocess
-  script:
-    - pandoc -f markdown -t rst -o README.rst README.md
-
-  artifacts:
-    expire_in: 1 day
-    paths:
-     - "README.rst"
 
 ################################################################################
 # Build
 
 .bdist:base: &bdist_template
   stage: build
-  dependencies:
-    - readme.rst
   script:
     - ci/build_wheels.sh
   artifacts:
@@ -51,8 +36,6 @@ bdist:32bit:
 sdist:
   stage: build
   image: python:3
-  dependencies:
-    - readme.rst
   script:
     - ci/build_tar.sh
   artifacts:
