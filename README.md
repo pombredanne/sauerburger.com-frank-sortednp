@@ -1,5 +1,5 @@
 Numpy and Numpy arrays are a really great tool. However, intersecting and
-merging multiple numpy arrays is rather less performant. The current numpy
+merging multiple sorted numpy arrays is rather less performant. The current numpy
 implementation concatenates the two arrays and sorts the combination. If you
 want to merge or intersect multiple numpy arrays, there is a much faster way,
 by using the property, that the resulting array is sorted.
@@ -131,10 +131,9 @@ $ python3 intersect_indices.py
 (array([0, 1]), array([1, 3]))
 ```
 
-The first line shoes the regular intersection of the two arrays. The second line
-print a tuple with the indices of the values in the intersection. The number
-`2` can be found at position `0` in array `a` and at position `1` in array
-`b`. Similarly, the value `4` is at position `1` in array `a` and at position
+The first line shows the intersection of the two arrays. The second line
+prints a tuple with the indices where the common values appeared in the input
+arrays. For example, the value `4` is at position `1` in array `a` and at position
 `3` in array `b`. 
 
 ## k-way methods
@@ -203,7 +202,7 @@ algorithms is compared in the next section.
 
 # Performance
 The performance of the package can be compared with the default implementation
-of numpy. The ratio of the execution time between sortednp and numpy is
+of numpy, the intersect1d` method. The ratio of the execution time between sortednp and numpy is
 shown for various different benchmark tests.
 
 The merge or intersect time can be estimated under two different assumptions. If
