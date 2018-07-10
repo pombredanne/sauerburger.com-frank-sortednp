@@ -243,7 +243,7 @@ pylint:
   image: python:3
   stage: benchmark
   tags:
-    - high-mem
+    - benchmark
   script:
     - pip install matplotlib
     - pip install -r requirements.txt
