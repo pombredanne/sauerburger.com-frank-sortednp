@@ -58,18 +58,22 @@ class Base(metaclass=ABCMeta):
         """
         pass
 
-    def test_readme(self):
+    def test_issue_example(self):
         """
-        Use example from README.
+        Use example from issue !17.
         """
-        a = np.array([0, 3, 4, 6, 7], dtype=self.get_dtype())
-        b = np.array([1, 2, 3, 5, 7, 9], dtype=self.get_dtype())
+        a = np.array([2,4,6,8,10], dtype=self.get_dtype())
+        b = np.array([1,2,3,4], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
-        self.assertEqual(list(i), [3, 7])
+        self.assertEqual(list(i), [2, 4])
         self.assertEqual(i.dtype, self.get_dtype())
 
+        self.assertEqual(list(i_a), [0, 1])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [1, 3])
+        self.assertEqual(i_b.dtype, "intp")
     
     def test_simple_middle(self):
         """
@@ -80,10 +84,15 @@ class Base(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 8, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [1, 3])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [1, 2])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_simple_end_single(self):
         """
@@ -93,11 +102,15 @@ class Base(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7, 9])
         self.assertEqual(i.dtype, self.get_dtype())
 
+        self.assertEqual(list(i_a), [1, 3, 4])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [1, 2, 3])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_simple_end_both(self):
         """
@@ -108,10 +121,15 @@ class Base(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 9], dtype=self.get_dtype())
         b = np.array([1, 3, 7, 9], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [3, 7, 9])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [1, 3, 4])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [1, 2, 3])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_simple_beginning_single(self):
         """
@@ -121,10 +139,15 @@ class Base(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([1, 2, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [2, 3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [0, 1, 3])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [1, 2, 3])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_simple_beginning_both(self):
         """
@@ -135,10 +158,15 @@ class Base(metaclass=ABCMeta):
         a = np.array([2, 3, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([2, 3, 7, 9, 10], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [2, 3, 7])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [0, 1, 3])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0, 1, 2])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_empty_intersect(self):
         """
@@ -148,11 +176,18 @@ class Base(metaclass=ABCMeta):
         a = np.array([1, 3, 5, 10], dtype=self.get_dtype())
         b = np.array([2, 4, 7, 8, 20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [])
+        self.assertEqual(len(i_a), 0)
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [])
+        self.assertEqual(len(i_b), 0)
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_empty_input_single(self):
         """
@@ -162,15 +197,27 @@ class Base(metaclass=ABCMeta):
         a = np.array([], dtype=self.get_dtype())
         b = np.array([2, 4, 7, 8, 20], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
+        self.assertEqual(list(i_a), [])
+        self.assertEqual(len(i_a), 0)
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [])
+        self.assertEqual(len(i_b), 0)
+        self.assertEqual(i_b.dtype, "intp")
 
-        i = snp.intersect(b, a, **self.get_kwds())
+        i, (i_b, i_a) = snp.intersect(b, a, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
+        self.assertEqual(list(i_a), [])
+        self.assertEqual(len(i_a), 0)
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [])
+        self.assertEqual(len(i_b), 0)
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_empty_input_both(self):
         """
@@ -180,10 +227,17 @@ class Base(metaclass=ABCMeta):
         a = np.array([], dtype=self.get_dtype())
         b = np.array([], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [])
+        self.assertEqual(len(i_a), 0)
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [])
+        self.assertEqual(len(i_b), 0)
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_contained(self):
         """
@@ -193,13 +247,23 @@ class Base(metaclass=ABCMeta):
         a = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=self.get_dtype())
         b = np.array([4, 5, 7], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [4, 5, 7])
         self.assertEqual(i.dtype, self.get_dtype())
 
-        i = snp.intersect(b, a, **self.get_kwds())
+        self.assertEqual(list(i_a), [3, 4, 6])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0, 1, 2])
+        self.assertEqual(i_b.dtype, "intp")
+
+        i, (i_b, i_a) = snp.intersect(b, a, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [4, 5, 7])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [3, 4, 6])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0, 1, 2])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_identical(self):
         """
@@ -208,10 +272,15 @@ class Base(metaclass=ABCMeta):
         """
         a = np.array([3, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, a, **self.get_kwds())
+        i, (i_a, i_a_prime) = snp.intersect(a, a, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [3, 4, 6, 8])
         self.assertEqual(list(a), [3, 4, 6, 8])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [0, 1, 2, 3])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_a_prime), [0, 1, 2, 3])
+        self.assertEqual(i_a_prime.dtype, "intp")
 
         i[0] = 1
         self.assertEqual(list(a), [3, 4, 6, 8])
@@ -224,10 +293,17 @@ class Base(metaclass=ABCMeta):
         a = np.array([1, 2, 3], dtype=self.get_dtype())
         b = np.array([4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [])
         self.assertEqual(len(i), 0)
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [])
+        self.assertEqual(len(i_a), 0)
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [])
+        self.assertEqual(len(i_b), 0)
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_duplicates_same(self):
         """
@@ -237,17 +313,26 @@ class Base(metaclass=ABCMeta):
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([1, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [1])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [0])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0])
+        self.assertEqual(i_b.dtype, "intp")
 
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([1, 2, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [1, 2])
         self.assertEqual(i.dtype, self.get_dtype())
 
+        self.assertEqual(list(i_a), [0, 1])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0, 1])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_duplicates_both(self):
         """
@@ -257,9 +342,14 @@ class Base(metaclass=ABCMeta):
         a = np.array([1, 2, 2, 3], dtype=self.get_dtype())
         b = np.array([2, 2, 4, 6, 8], dtype=self.get_dtype())
 
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
         self.assertEqual(list(i), [2, 2])
         self.assertEqual(i.dtype, self.get_dtype())
+
+        self.assertEqual(list(i_a), [1, 2])
+        self.assertEqual(i_a.dtype, "intp")
+        self.assertEqual(list(i_b), [0, 1])
+        self.assertEqual(i_b.dtype, "intp")
 
     def test_raise_multi_dim(self):
         """
@@ -268,9 +358,9 @@ class Base(metaclass=ABCMeta):
         a = np.zeros((10, 2), dtype=self.get_dtype())
         b = np.array([2, 3, 5, 6], dtype=self.get_dtype())
 
-        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
-        self.assertRaises(ValueError, snp.intersect, b, a, **self.get_kwds())
-        self.assertRaises(ValueError, snp.intersect, a, a, **self.get_kwds())
+        self.assertRaises(ValueError, snp.intersect, a, b, indices=True, **self.get_kwds())
+        self.assertRaises(ValueError, snp.intersect, b, a, indices=True, **self.get_kwds())
+        self.assertRaises(ValueError, snp.intersect, a, a, indices=True, **self.get_kwds())
         
     def test_raise_non_array(self):
         """
@@ -278,9 +368,9 @@ class Base(metaclass=ABCMeta):
         """
         b = np.array([2, 3, 5, 6], dtype=self.get_dtype())
 
-        self.assertRaises(TypeError, snp.intersect, 3, b, **self.get_kwds())
-        self.assertRaises(TypeError, snp.intersect, b, 2, **self.get_kwds())
-        self.assertRaises(TypeError, snp.intersect, 3, "a", **self.get_kwds())
+        self.assertRaises(TypeError, snp.intersect, 3, b, indices=True, **self.get_kwds())
+        self.assertRaises(TypeError, snp.intersect, b, 2, indices=True, **self.get_kwds())
+        self.assertRaises(TypeError, snp.intersect, 3, "a", indices=True, **self.get_kwds())
 
     def test_reference_counting_principle(self):
         """
@@ -339,77 +429,78 @@ class Base(metaclass=ABCMeta):
         self.assertIsNotNone(weak_b())
 
         ## Intersect
-        i = snp.intersect(a, b, **self.get_kwds())
+        i, (i_a, i_b) = snp.intersect(a, b, indices=True, **self.get_kwds())
 
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
         self.assertEqual(sys.getrefcount(i), 2)
+        self.assertEqual(sys.getrefcount(i_a), 2)
+        self.assertEqual(sys.getrefcount(i_b), 2)
 
-        # Create weakref for i
+        # Create weakrefs
         weak_i = weakref.ref(i)
+        weak_i_a = weakref.ref(i_a)
+        weak_i_b = weakref.ref(i_b)
         self.assertEqual(sys.getrefcount(a), 2)
         self.assertEqual(sys.getrefcount(b), 2)
         self.assertEqual(sys.getrefcount(i), 2)
+        self.assertEqual(sys.getrefcount(i_a), 2)
+        self.assertEqual(sys.getrefcount(i_b), 2)
         self.assertIsNotNone(weak_a())
         self.assertIsNotNone(weak_b())
         self.assertIsNotNone(weak_i())
+        self.assertIsNotNone(weak_i_a())
+        self.assertIsNotNone(weak_i_b())
 
         # Delete a
         del a
         self.assertEqual(sys.getrefcount(b), 2)
         self.assertEqual(sys.getrefcount(i), 2)
+        self.assertEqual(sys.getrefcount(i_a), 2)
+        self.assertEqual(sys.getrefcount(i_b), 2)
         self.assertIsNone(weak_a())
         self.assertIsNotNone(weak_b())
         self.assertIsNotNone(weak_i())
+        self.assertIsNotNone(weak_i_a())
+        self.assertIsNotNone(weak_i_b())
 
         # Delete b
         del b
         self.assertEqual(sys.getrefcount(i), 2)
+        self.assertEqual(sys.getrefcount(i_a), 2)
+        self.assertEqual(sys.getrefcount(i_b), 2)
         self.assertIsNone(weak_a())
         self.assertIsNone(weak_b())
         self.assertIsNotNone(weak_i())
+        self.assertIsNotNone(weak_i_a())
+        self.assertIsNotNone(weak_i_b())
 
         # Delete i
         del i
+        self.assertEqual(sys.getrefcount(i_a), 2)
+        self.assertEqual(sys.getrefcount(i_b), 2)
         self.assertIsNone(weak_a())
         self.assertIsNone(weak_b())
         self.assertIsNone(weak_i())
+        self.assertIsNotNone(weak_i_a())
+        self.assertIsNotNone(weak_i_b())
 
-    def test_reference_counting_early_exit_type(self):
-        """
-        Check that the reference counts of the input array does not change
-        even when the method exists premature due to incompatible inputs
-        types.
-        """
-        a = np.array(10)
+        # Delete i_a
+        del i_a
+        self.assertEqual(sys.getrefcount(i_b), 2)
+        self.assertIsNone(weak_a())
+        self.assertIsNone(weak_b())
+        self.assertIsNone(weak_i())
+        self.assertIsNone(weak_i_a())
+        self.assertIsNotNone(weak_i_b())
 
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(TypeError, snp.intersect, a, [1, 2], **self.get_kwds())
-        self.assertEqual(sys.getrefcount(a), 2)
-
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(TypeError, snp.intersect, [1, 2], a, **self.get_kwds())
-        self.assertEqual(sys.getrefcount(a), 2)
-
-    def test_reference_counting_early_exit_dim(self):
-        """
-        Check that the reference counts of the input array does not change
-        even when the method exists premature due multidimensional input
-        arrays.
-        """
-        a = np.zeros((10, 2))
-        b = np.arange(10)
-
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertEqual(sys.getrefcount(b), 2)
-        self.assertRaises(ValueError, snp.intersect, a, b, **self.get_kwds())
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertEqual(sys.getrefcount(b), 2)
-
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertRaises(ValueError, snp.intersect, b, a, **self.get_kwds())
-        self.assertEqual(sys.getrefcount(a), 2)
-        self.assertEqual(sys.getrefcount(b), 2)
+        # Delete i_b
+        del i_b
+        self.assertIsNone(weak_a())
+        self.assertIsNone(weak_b())
+        self.assertIsNone(weak_i())
+        self.assertIsNone(weak_i_a())
+        self.assertIsNone(weak_i_b())
 
 class ITC_Double:
     def get_dtype(self):

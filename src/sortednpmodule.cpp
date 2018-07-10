@@ -12,7 +12,7 @@
  */
 template <typename T>
 PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
-    method_t search_method) {
+    method_t search_method, int indices) {
   // Since the size of the intersection array can not be known in advance we
   // need to create an array of at least the size of the smaller array.
   npy_intp len_a = PyArray_DIMS(a_array)[0];
@@ -40,6 +40,7 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
   // calling the method.
   PyArray_Descr* type = PyArray_DESCR(a_array);
   Py_INCREF(type);
+
   PyObject *out;
   out = PyArray_SimpleNewFromDescr(1, new_dim, type);
   if (out == NULL) {
@@ -47,6 +48,33 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     return NULL;
   }
   PyArrayObject *out_array = reinterpret_cast<PyArrayObject*>(out);
+
+  PyObject *indices_a;
+  PyObject *indices_b;
+  PyArrayObject *indices_a_array;
+  PyArrayObject *indices_b_array;
+  if (indices != 0) {
+    indices_a = PyArray_SimpleNew(1, new_dim, NPY_INTP);
+    if (indices_a == NULL) {
+      // Probably a memory error occurred.
+      Py_XDECREF(out);
+
+      // Save to exit, intermediate objects deleted.
+      return NULL;
+    }
+    indices_a_array = reinterpret_cast<PyArrayObject*>(indices_a);
+
+    indices_b = PyArray_SimpleNew(1, new_dim, NPY_INTP);
+    if (indices_b == NULL) {
+      // Probably a memory error occurred.
+      Py_XDECREF(out);
+      Py_XDECREF(indices_a);
+
+      // Save to exit, intermediate objects deleted.
+      return NULL;
+    }
+    indices_b_array = reinterpret_cast<PyArrayObject*>(indices_b);
+  }
 
   npy_intp i_a = 0;
   npy_intp i_b = 0;
@@ -69,6 +97,15 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
     if (v_a == v_b) {
       T *t = reinterpret_cast<T*>(PyArray_GETPTR1(out_array, i_o));
       *t = v_a;
+      if (indices != 0) {
+        npy_intp *t_a =
+          reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_a_array, i_o));
+        npy_intp *t_b =
+          reinterpret_cast<npy_intp*>(PyArray_GETPTR1(indices_b_array, i_o));
+
+        *t_a = i_a;
+        *t_b = i_b;
+      }
 
       i_o++;
       i_a++;
@@ -86,7 +123,20 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
   dims.len = 1;
   PyArray_Resize(out_array, &dims, 0, NPY_CORDER);
 
-  return out;
+  if (indices == 0) {
+    return out;
+  } else {
+    PyArray_Resize(indices_a_array, &dims, 0, NPY_CORDER);
+    PyArray_Resize(indices_b_array, &dims, 0, NPY_CORDER);
+
+    PyObject* tuple =  Py_BuildValue("O(OO)", out, indices_a, indices_b);
+    // The tuple holds the references to the arrays, we can release them
+    Py_XDECREF(out);
+    Py_XDECREF(indices_a);
+    Py_XDECREF(indices_b);
+
+    return tuple;
+  }
 }
 
 /*
@@ -101,20 +151,22 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   // incremented since input arrays are not stored.
 
   PyObject *a, *b;
+  int indices = 0;  // Default is to ignore the indices
   int algorithm = -1;
 
   // Prepare keyword strings
   char s_a[] = "a";
   char s_b[] = "b";
+  char s_indices[] = "indices";
   char s_algorithm[] = "algorithm";
-  char * kwlist[] = {s_a, s_b, s_algorithm, NULL};
+  char * kwlist[] = {s_a, s_b, s_indices, s_algorithm, NULL};
 
 
 
   // PyArg_ParseTuple returns borrowed references. This is fine, the input
   // arrays are not stored.
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|i", kwlist,
-      &PyArray_Type, &a, &PyArray_Type, &b, &algorithm)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|pi", kwlist,
+      &PyArray_Type, &a, &PyArray_Type, &b, &indices, &algorithm)) {
     // Reference counters have not been changed.
     return NULL;
   }
@@ -187,34 +239,34 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   // Differentiate between different data types.
   switch (PyArray_TYPE(a_array)) {
     case NPY_INT8:
-      out = intersect<int8_t>(a_array, b_array, search_method);
+      out = intersect<int8_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_INT16:
-      out = intersect<int16_t>(a_array, b_array, search_method);
+      out = intersect<int16_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_INT32:
-      out = intersect<int32_t>(a_array, b_array, search_method);
+      out = intersect<int32_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_INT64:
-      out = intersect<int64_t>(a_array, b_array, search_method);
+      out = intersect<int64_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_UINT8:
-      out = intersect<uint8_t>(a_array, b_array, search_method);
+      out = intersect<uint8_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_UINT16:
-      out = intersect<uint16_t>(a_array, b_array, search_method);
+      out = intersect<uint16_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_UINT32:
-      out = intersect<uint32_t>(a_array, b_array, search_method);
+      out = intersect<uint32_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_UINT64:
-      out = intersect<uint64_t>(a_array, b_array, search_method);
+      out = intersect<uint64_t>(a_array, b_array, search_method, indices);
       break;
     case NPY_FLOAT32:
-      out = intersect<float>(a_array, b_array, search_method);
+      out = intersect<float>(a_array, b_array, search_method, indices);
       break;
     case NPY_FLOAT64:
-      out = intersect<double>(a_array, b_array, search_method);
+      out = intersect<double>(a_array, b_array, search_method, indices);
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "Data type not supported.");
@@ -408,7 +460,10 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
 PyMethodDef SortedNpMethods[] = {
   {"merge",  sortednp_merge, METH_VARARGS, "Merge two sorted numpy arrays."},
   {"intersect",  (PyCFunction) sortednp_intersect, METH_VARARGS | METH_KEYWORDS,
-  "Intersect two sorted numpy arrays."},
+    "Intersect two sorted numpy arrays. If the optional argument indices is "
+    "True, the method will\r\n return a tuple of the format "
+    "(intersection_array, (indices_array_a, indices_array_b))."
+  },
   {NULL, NULL, 0, NULL}  // Sentinel
 };
 

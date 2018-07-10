@@ -1,5 +1,5 @@
 Numpy and Numpy arrays are a really great tool. However, intersecting and
-merging multiple numpy arrays is rather less performant. The current numpy
+merging multiple sorted numpy arrays is rather less performant. The current numpy
 implementation concatenates the two arrays and sorts the combination. If you
 want to merge or intersect multiple numpy arrays, there is a much faster way,
 by using the property, that the resulting array is sorted.
@@ -101,6 +101,41 @@ array.
 $ python3 intersect.py
 [3 7]
 ```
+
+## Returning array indices
+The `intersect` method takes an optional argument `indices` which is `False`
+by default. If this is set to `True`, the return value consists of the
+intersection array and a tuple with the indices of the common values for both
+arrays.
+
+<!-- write intersect_indices.py -->
+```python
+# intersect_indices.py
+import numpy as np
+import sortednp as snp
+
+a = np.array([2,4,6,8,10])
+b = np.array([1,2,3,4])
+
+intersection, indices = snp.intersect(a,b, indices=True)
+
+print(intersection)
+print(indices)
+```
+
+The above example gives:
+<!-- console_output -->
+```python
+$ python3 intersect_indices.py
+[2 4]
+(array([0, 1]), array([1, 3]))
+```
+
+The first line shows the intersection of the two arrays. The second line
+prints a tuple with the indices where the common values appeared in the input
+arrays. For example, the value `4` is at position `1` in array `a` and at position
+`3` in array `b`. 
+
 ## k-way methods
 Similarly, the k-way intersect and merge methods take two or more arrays and
 perform the merge or intersect operation on its arguments.
@@ -167,7 +202,7 @@ algorithms is compared in the next section.
 
 # Performance
 The performance of the package can be compared with the default implementation
-of numpy. The ratio of the execution time between sortednp and numpy is
+of numpy, the intersect1d` method. The ratio of the execution time between sortednp and numpy is
 shown for various different benchmark tests.
 
 The merge or intersect time can be estimated under two different assumptions. If

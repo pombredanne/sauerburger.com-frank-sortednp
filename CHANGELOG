@@ -1,0 +1,10 @@
+# Changelog
+
+## Version 0.2.0
+ - Add indices=True
+ - Add support for Python 3.7
+
+## Version 0.1.0
+ - Add C++-backed intersect method
+ - Add C++-backed merge method
+ - Add k-way variants of intersect and merge

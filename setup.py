@@ -36,9 +36,9 @@ class NumpyApiExtension(Extension):
         return super().__getattribute__(name)
 
 
-def load_long_description(*filenames, paragraphs=2):
+def load_long_description(*filenames, paragraphs=None):
     """
-    Try to load the two paragraph from any of the given file. If none of the
+    Try to load all paragraph from any of the given file. If none of the
     files could be opened, return None.
     """
     for filename in filenames:
@@ -60,13 +60,14 @@ BACKEND = NumpyApiExtension('sortednp._internal', language='c++',
                             depends=['numpy'])
 
 setup(name='sortednp',
-      version='0.1.0',
+      version='0.2.0',
       packages=["sortednp", "sortednp.tests"],
       package_dir={"": "src"},
       install_requires=['numpy>=1.14'],
       test_suite='sortednp.tests',
       description='Merge and intersect sorted numpy arrays.',
-      long_description=load_long_description("README.rst", "README.md"),
+      long_description=load_long_description("README.md"),
+      long_description_content_type='text/markdown',
       url="https://gitlab.sauerburger.com/frank/sortednp",
       author="Frank Sauerburger",
       author_email="frank@sauerburger.com",
