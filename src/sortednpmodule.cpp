@@ -41,7 +41,7 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
   PyArray_Descr* type = PyArray_DESCR(a_array);
   Py_INCREF(type);
 
-  PyObject *out = nullptr;
+  PyObject *out;
   out = PyArray_SimpleNewFromDescr(1, new_dim, type);
   if (out == NULL) {
     // Probably a memory error occurred.
@@ -49,10 +49,10 @@ PyObject* intersect(PyArrayObject *a_array, PyArrayObject *b_array,
   }
   PyArrayObject *out_array = reinterpret_cast<PyArrayObject*>(out);
 
-  PyObject *indices_a = nullptr;
-  PyObject *indices_b = nullptr;
-  PyArrayObject *indices_a_array = nullptr;
-  PyArrayObject *indices_b_array = nullptr;
+  PyObject *indices_a;
+  PyObject *indices_b;
+  PyArrayObject *indices_a_array;
+  PyArrayObject *indices_b_array;
   if (indices != 0) {
     indices_a = PyArray_SimpleNew(1, new_dim, NPY_INTP);
     if (indices_a == NULL) {
@@ -150,8 +150,7 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   // References to the arguments are borrowed. Counter should not be
   // incremented since input arrays are not stored.
 
-  PyObject *a = nullptr;
-  PyObject *b = nullptr;
+  PyObject *a, *b;
   int indices = 0;  // Default is to ignore the indices
   int algorithm = -1;
 
@@ -310,7 +309,7 @@ PyObject* merge(PyArrayObject *a_array, PyArrayObject *b_array) {
   // calling the method.
   PyArray_Descr* type = PyArray_DESCR(a_array);
   Py_INCREF(type);
-  PyObject *out = nullptr;
+  PyObject *out;
   out = PyArray_SimpleNewFromDescr(1, new_dim, type);
   if (out == NULL) {
     // Probably a memory error occurred.
@@ -372,8 +371,7 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
   // References to the arguments are borrowed. Counter should not be
   // incremented since input arrays are not stored.
 
-  PyObject *a = nullptr;
-  PyObject *b = nullptr;
+  PyObject *a, *b;
 
   // PyArg_ParseTuple returns borrowed references. This is fine, the input
   // arrays are not stored.
