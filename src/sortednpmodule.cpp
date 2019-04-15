@@ -171,27 +171,20 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
     return NULL;
   }
 
-  // PyArray_FROM_OF steals a reference according to
-  // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
-  // means that the reference count is decremented in the end. However the
-  // method also returns a reference. It is not clear , whether ew own the
-  // reference or not.
-  //
-  // A quick investigation showed that Py_REFCNT(a) returns 2 before the
-  // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
-  // a new reference to the array for use and passes ownership of the
-  // references to use. To keep the reference count constant we have to
-  // decrement it.
+  // PyArray_FROM_OF borrows the reference for in the input array. The method
+  // might return a new object or the same object again if it matches
+  // NPY_ARRAY_CARRAY_RO. We own a reference of the returned object. If this is
+  // a new object, we own the single reference. If the returned object is the
+  // initial object, its reference count is incremented. In any case, we need
+  // decrement the counter once we are done with the object. See issue 22.
   a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
   b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
-  // Decrement reference counter of the non-null array, see above comment
-  // block.
-  Py_XDECREF(a);
-  Py_XDECREF(b);
 
   if (a == NULL || b == NULL) {
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
@@ -202,14 +195,20 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
   if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
     PyErr_SetString(PyExc_ValueError,
       "Arguments can not be multi-dimensional.");
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
   if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
     PyErr_SetString(PyExc_ValueError,
       "Arguments must have the same data type.");
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
@@ -229,7 +228,10 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
     default:
       PyErr_SetString(PyExc_ValueError,
         "Invalid search algorithm.");
-      // Reference counter of input arrays have been fixed. It is safe to exit.
+
+      Py_XDECREF(a);
+      Py_XDECREF(b);
+      // Reference counter of internal arrays have been fixed. It is safe to exit.
       return NULL;
   }
 
@@ -270,9 +272,16 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "Data type not supported.");
-      // Reference counter of input arrays have been fixed. It is safe to exit.
+
+      Py_XDECREF(a);
+      Py_XDECREF(b);
+      // Reference counter of internal arrays have been fixed. It is safe to exit.
       return NULL;
   }
+
+  Py_XDECREF(a);
+  Py_XDECREF(b);
+  // Reference counter of internal arrays have been fixed. It is safe to exit.
 
   // Passes ownership of the returned reference to the  caller.
   return out;
@@ -370,27 +379,19 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
     // Reference counters have not been changed.
     return NULL;
 
-  // PyArray_FROM_OF steals a reference according to
-  // https://groups.google.com/forum/#!topic/numpy/Rg9BpWoc37U. This usually
-  // means that the reference count is decremented in the end. However the
-  // method also returns a reference. It is not clear , whether ew own the
-  // reference or not.
-  //
-  // A quick investigation showed that Py_REFCNT(a) returns 2 before the
-  // PyArray_FROM_OF call, and 3 after. This indicates that the method creates
-  // a new reference to the array for use and passes ownership of the
-  // references to use. To keep the reference count constant we have to
-  // decrement it.
+  // PyArray_FROM_OF borrows the reference for in the input array. The method
+  // might return a new object or the same object again if it matches
+  // NPY_ARRAY_CARRAY_RO. We own a reference of the returned object. If this is
+  // a new object, we own the single reference. If the returned object is the
+  // initial object, its reference count is incremented. In any case, we need
+  // decrement the counter once we are done with the object. See issue 22.
   a = PyArray_FROM_OF(a, NPY_ARRAY_CARRAY_RO);
   b = PyArray_FROM_OF(b, NPY_ARRAY_CARRAY_RO);
 
-  // Decrement reference counter of the non-null array, see above comment
-  // block.
-  Py_XDECREF(a);
-  Py_XDECREF(b);
-
   if (a == NULL || b == NULL) {
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
@@ -402,14 +403,18 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
   if (PyArray_NDIM(a_array) != 1 || PyArray_NDIM(b_array) != 1) {
     PyErr_SetString(PyExc_ValueError,
       "Arguments can not be multi-dimensional.");
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
   if (PyArray_TYPE(a_array) != PyArray_TYPE(b_array)) {
     PyErr_SetString(PyExc_ValueError,
       "Arguments must have the same data type.");
-    // Reference counter of input arrays have been fixed. It is safe to exit.
+    Py_XDECREF(a);
+    Py_XDECREF(b);
+    // Reference counter of internal arrays have been fixed. It is safe to exit.
     return NULL;
   }
 
@@ -449,9 +454,15 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "Data type not supported.");
-      // Reference counter of input arrays have been fixed. It is safe to exit.
+      Py_XDECREF(a);
+      Py_XDECREF(b);
+      // Reference counter of internal arrays have been fixed. It is safe to exit.
       return NULL;
   }
+
+  Py_XDECREF(a);
+  Py_XDECREF(b);
+  // Reference counter of internal arrays have been fixed. It is safe to exit.
 
   // Passes ownership of the returned reference to the  caller.
   return out;
