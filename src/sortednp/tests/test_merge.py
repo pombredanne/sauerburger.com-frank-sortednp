@@ -465,3 +465,58 @@ class MergeTestCase_TypeError(unittest.TestCase):
         b = np.array([2, 5, 6], dtype='float64')
 
         self.assertRaises(ValueError, snp.merge, a, b)
+
+class MergeNonCContiguousTestCase(unittest.TestCase):
+    """
+    Check that merge works correctly with the issues of non-c-contiguous
+    arrays. See Issue 22,
+    https://gitlab.sauerburger.com/frank/sortednp/issues/22.
+    """
+
+    def test_non_cc_second(self):
+        """
+        Check that using a non-c-contiguous array as the second argument
+        returns the correct value.
+
+        Repeat the test 1000 times because memory issues might be flaky.
+        """
+        for i in range(1000):
+            a = np.array([[1, 2, 3], [3, 4, 5], [7, 9, 10]]) 
+            nonzero_row, nonzero_col = np.nonzero(a)
+            
+            x = np.array([0, 1, 5])
+            y = nonzero_col[0:3]
+            
+            self.assertEqual(list(snp.merge(x, y)), [0, 0, 1, 1, 2, 5])
+
+    def test_non_cc_first(self):
+        """
+        Check that using a non-c-contiguous array as the first argument
+        returns the correct value.
+
+        Repeat the test 1000 times because memory issues might be flaky.
+        """
+        for i in range(1000):
+            a = np.array([[1, 2, 3], [3, 4, 5], [7, 9, 10]]) 
+            nonzero_row, nonzero_col = np.nonzero(a)
+            
+            x = nonzero_col[0:3]
+            y = np.array([0, 1, 5])
+            
+            self.assertEqual(list(snp.merge(x, y)), [0, 0, 1, 1, 2, 5])
+
+    def test_non_cc_both(self):
+        """
+        Check that using a non-c-contiguous array as the both arguments
+        returns the correct value.
+
+        Repeat the test 1000 times because memory issues might be flaky.
+        """
+        for i in range(1000):
+            a = np.array([[1, 2, 3], [3, 4, 5], [7, 9, 10]]) 
+            nonzero_row, nonzero_col = np.nonzero(a)
+            
+            x = nonzero_col[0:3]
+            y = nonzero_col[0:3]
+
+            self.assertEqual(list(snp.merge(x, y)), [0, 0, 1, 1, 2, 2])
