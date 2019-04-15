@@ -487,7 +487,6 @@ class MergeNonCContiguousTestCase(unittest.TestCase):
             y = nonzero_col[0:3]
             x = np.array([0, 1, 5])
             
-            self.assertEqual(list(snp.merge(x, y)), [0, 0, 1, 1, 2, 5])
             try:
                 self.assertEqual(list(snp.merge(x, y)), [0, 0, 1, 1, 2, 5])
             except ValueError:
