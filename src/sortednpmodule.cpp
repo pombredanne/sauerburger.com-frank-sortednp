@@ -1,4 +1,4 @@
-// Copyright (C) 2016, Frank Sauerburger
+// Copyright (C) 2016-2019, Frank Sauerburger
 // C++ implementation of the sortednp module
 
 #include "sortednpmodule.h"
