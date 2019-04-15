@@ -231,7 +231,8 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
 
       Py_XDECREF(a);
       Py_XDECREF(b);
-      // Reference counter of internal arrays have been fixed. It is safe to exit.
+      // Reference counter of internal arrays have been fixed.
+      // It is safe to exit.
       return NULL;
   }
 
@@ -275,7 +276,8 @@ PyObject *sortednp_intersect(PyObject *self, PyObject *args, PyObject* kwds) {
 
       Py_XDECREF(a);
       Py_XDECREF(b);
-      // Reference counter of internal arrays have been fixed. It is safe to exit.
+      // Reference counter of internal arrays have been fixed.
+      // It is safe to exit.
       return NULL;
   }
 
@@ -456,7 +458,8 @@ PyObject *sortednp_merge(PyObject *self, PyObject *args) {
       PyErr_SetString(PyExc_ValueError, "Data type not supported.");
       Py_XDECREF(a);
       Py_XDECREF(b);
-      // Reference counter of internal arrays have been fixed. It is safe to exit.
+      // Reference counter of internal arrays have been fixed.
+      // It is safe to exit.
       return NULL;
   }
 
